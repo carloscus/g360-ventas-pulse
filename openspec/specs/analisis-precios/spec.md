@@ -45,10 +45,11 @@ descendente y resaltando al cliente en contexto.
   conteo de NCs, permitiendo identificar descuentos por volumen
 
 ### Requirement: Detector de precios anomalos
-El sistema SHALL marcar ventas cuyo precio unitario este al menos 15% por
-debajo del precio promedio del cliente+SKU, mostrando la cantidad vendida
-como contexto (posible precio por volumen) y la fecha, como argumento de
-negociacion.
+El sistema SHALL agrupar las ventas por PRODUCTO (variantes del mismo nombre
+consolidadas) y marcar aquellas cuyo precio unitario este al menos 15% por
+debajo del promedio PONDERADO por cantidad de las filas normales del producto
+(baseline que excluye las propias anomalas), mostrando numero de lineas y
+documentos, rango de cantidades y fechas, como argumento de negociacion.
 
 #### Scenario: Precio por volumen detectado
 - **WHEN** una venta de 10,000 und se facturo a S/14.00 con promedio S/15.50
@@ -58,3 +59,4 @@ negociacion.
 #### Scenario: Sin anomalias
 - **WHEN** todos los precios estan dentro del umbral
 - **THEN** no se muestran marcas y el resumen no indica alertas
+

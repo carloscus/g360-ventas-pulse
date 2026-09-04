@@ -300,7 +300,7 @@
 							<p class="text-xs font-semibold text-warning-700 dark:text-warning-400 mb-1">
 								{anomalias.length} producto(s) con ventas bajo el promedio (argumento de negociacion):
 							</p>
-							{#each anomalias as a (a.sku)}
+							{#each anomalias as a (a.nom)}
 								<p class="text-xs text-g360-muted dark:text-g360-mutedDark">
 									<b class="text-g360-text dark:text-g360-textDark">{String(a.nom).slice(0, 34)}</b> · S/ {a.precio.toFixed(2)} vs prom S/ {a.promedio.toFixed(2)} (<b class="text-warning-700 dark:text-warning-400">{a.delta_pct}%</b>) · {a.n} líneas en {a.nDocs} {a.nDocs > 1 ? 'docs' : 'doc'} · {a.cantMin === a.cantMax ? fmtNum(a.cantMin) + ' und c/u' : fmtNum(a.cantMin) + '-' + fmtNum(a.cantMax) + ' und'} · {a.fechaDesde === a.fechaHasta ? a.fechaDesde : a.fechaDesde + ' a ' + a.fechaHasta}
 								</p>
@@ -317,7 +317,7 @@
 												{String(a.nom).slice(0, 40)}
 											</p>
 											<p class="text-[10px] text-g360-muted dark:text-g360-mutedDark">
-												{a.sku} - {a.totalVentas} ventas
+												{a.sku} - {a.totalVentas} líneas
 											</p>
 										</div>
 										<div class="text-right shrink-0">
@@ -359,7 +359,7 @@
 															<span class="shrink-0 font-semibold">S/{cp.ultimo.precio.toFixed(2)}{#if cp.ncConteo > 0} <span class="text-warning-700 dark:text-warning-400 text-[10px]">NCx{cp.ncConteo}</span>{/if}</span>
 														</div>
 														<div class="flex justify-between gap-2 opacity-60">
-															<span>ult: {cp.ultimo.fecha} x{fmtNum(cp.ultimo.cantidad)}{cp.ultimo.folio ? ` F.${cp.ultimo.folio}` : ""} {cp.min.precio !== cp.max.precio ? `- rango ${cp.min.precio.toFixed(2)} a ${cp.max.precio.toFixed(2)}` : `- ${cp.nDocs} doc, ${cp.nVentas} lineas`}</span>
+															<span>ult: {cp.ultimo.fecha} x{fmtNum(cp.ultimo.cantidad)}{cp.ultimo.folio ? ` F.${cp.ultimo.folio}` : ""} {cp.min.precio.toFixed(2) !== cp.max.precio.toFixed(2) ? `- rango ${cp.min.precio.toFixed(2)} a ${cp.max.precio.toFixed(2)}` : `- ${cp.nDocs} ${cp.nDocs === 1 ? 'doc' : 'docs'}, ${cp.nVentas} ${cp.nVentas === 1 ? 'linea' : 'lineas'}`}</span>
 														</div>
 													</div>
 												{/each}
@@ -451,7 +451,7 @@
 								<td colspan="12" class="px-3 py-2 text-[11px] text-g360-muted dark:text-g360-mutedDark">
 									<div class="flex flex-wrap gap-x-5 gap-y-1">
 										<span><b class="text-g360-text dark:text-g360-textDark">Última atención:</b> {f.precio_ultimo === null ? '-' : fmtSoles(f.precio_ultimo)} x{fmtNum(f.ultimo_cantidad || 0)} und {f.ultimo_fecha ? `- ${f.ultimo_fecha}` : ''}{f.ultimo_doc ? ` - F. ${f.ultimo_doc}` : ''}</span>
-										{#if f.rango_min !== null && f.rango_min !== f.rango_max}
+										{#if f.rango_min !== null && f.rango_min.toFixed(2) !== f.rango_max.toFixed(2)}
 											<span><b class="text-g360-text dark:text-g360-textDark">Rango:</b> {fmtSoles(f.rango_min)} a {fmtSoles(f.rango_max)}</span>
 										{/if}
 										{#if f.nc_detalle && f.nc_detalle.length > 0}
@@ -489,6 +489,9 @@
 
 
 <ProductSearchModal bind:open={searchOpen} />
+
+
+
 
 
 

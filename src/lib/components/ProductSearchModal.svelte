@@ -355,7 +355,7 @@
 													</div>
 													<div class="text-[10px] flex justify-between gap-2 opacity-70">
 														<span>ult: {cp.ultimo.fecha} x{fmtNum(cp.ultimo.cantidad)}{cp.ultimo.folio ? ` F.${cp.ultimo.folio}` : ''}</span>
-														<span>{cp.min.precio !== cp.max.precio ? `rango ${cp.min.precio.toFixed(2)} a ${cp.max.precio.toFixed(2)}` : `${cp.nDocs} ${cp.nDocs === 1 ? 'doc' : 'docs'}, ${cp.nVentas} ${cp.nVentas === 1 ? 'linea' : 'lineas'}`}</span>
+														<span>{cp.min.precio.toFixed(2) !== cp.max.precio.toFixed(2) ? `rango ${cp.min.precio.toFixed(2)} a ${cp.max.precio.toFixed(2)}` : `${cp.nDocs} ${cp.nDocs === 1 ? 'doc' : 'docs'}, ${cp.nVentas} ${cp.nVentas === 1 ? 'linea' : 'lineas'}`}</span>
 													</div>
 												{/each}
 											</div>
@@ -398,6 +398,8 @@
 		</div>
 	</div>
 {/if}
+
+
 
 
 

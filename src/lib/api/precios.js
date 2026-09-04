@@ -102,36 +102,68 @@ export function analisisAnual(rows, topSkus = null) {
  * Anomalias: ventas con precio < promedio del cliente+SKU * (1 + umbral).
  * Devuelve por SKU con contexto de cantidad y fecha (proxy de volumen).
  */
+/** Clave de producto: nombre normalizado sin sufijos de presentacion (agrupa variantes). */
+function claveProducto(nombre) {
+	const s = String(nombre || '').trim().toUpperCase().replace(/\s+/g, ' ');
+	return s
+		.replace(/\s*(EST\s*X\s*\d+|X\s*\d+\s*(UND|UNIDADES)?|#\d+(\.\d+)?|\d+\s*(ML|CM|MM))\s*$/g, '')
+		.replace(/[-\s]+$/, '')
+		.trim() || s;
+}
+
+/**
+ * Anomalias de precio agrupadas por PRODUCTO (variantes del mismo nombre se
+ * consolidan). El promedio es PONDERADO por cantidad y se recalcula excluyendo
+ * las filas anomalas (baseline limpia), para que "vs prom" refleje el precio
+ * normal real del cliente, no uno contaminado por la propia campana.
+ */
 export function detectarAnomalias(rows, topSkus = null) {
-	const porSku = new Map();
+	const porProducto = new Map();
 	for (const r of rows || []) {
 		const sku = String(r.id_articulo);
 		if (topSkus && !topSkus.has(sku)) continue;
-		let f = porSku.get(sku);
-		if (!f) {
-			f = { sku, nom: r.nom_articulo || sku, precios: [] };
-			porSku.set(sku, f);
-		}
 		const p = Number(r.precio_unitario);
-		if (p > 0) f.precios.push({ precio: p, cantidad: Number(r.cantidad) || 0, fecha: r.fecha_orig, folio: [r.serie_doc, r.nro_doc].filter(Boolean).join('-') });
+		if (!(p > 0)) continue;
+		const clave = claveProducto(r.nom_articulo);
+		let f = porProducto.get(clave);
+		if (!f) {
+			f = { nom: clave, skus: new Set(), filas: [] };
+			porProducto.set(clave, f);
+		}
+		f.skus.add(sku);
+		f.filas.push({ precio: p, cantidad: Number(r.cantidad) || 0, fecha: r.fecha_orig, doc: [r.serie_doc, r.nro_doc].filter(Boolean).join('-') });
 	}
 
 	const anomalias = [];
-	for (const f of porSku.values()) {
-		if (f.precios.length < MIN_VENTAS) continue;
-		const prom = f.precios.reduce((a, b) => a + b.precio, 0) / f.precios.length;
+	for (const f of porProducto.values()) {
+		if (f.filas.length < MIN_VENTAS) continue;
+		const ponderado = (arr) => {
+			const c = arr.reduce((s, v) => s + v.cantidad, 0);
+			if (c <= 0) return 0;
+			return arr.reduce((s, v) => s + v.precio * v.cantidad, 0) / c;
+		};
+		let prom = ponderado(f.filas);
 		if (prom <= 0) continue;
-		const malas = f.precios.filter((v) => v.precio / prom - 1 <= UMBRAL_ANOMALIA);
+		let malas = f.filas.filter((v) => v.precio / prom - 1 <= UMBRAL_ANOMALIA);
+		if (malas.length === 0) continue;
+		const malasSet = new Set(malas);
+		const buenas = f.filas.filter((v) => !malasSet.has(v));
+		if (buenas.length > 0) {
+			const promLimpio = ponderado(buenas);
+			if (promLimpio > 0) prom = promLimpio;
+		}
+		malas = f.filas.filter((v) => v.precio / prom - 1 <= UMBRAL_ANOMALIA);
 		if (malas.length === 0) continue;
 		const fechas = malas.map((v) => v.fecha).sort();
 		const cants = malas.map((v) => v.cantidad);
-		const docs = new Set(malas.map((v) => v.folio).filter(Boolean));
+		const docs = new Set(malas.map((v) => v.doc).filter(Boolean));
+		const peor = Math.min(...malas.map((v) => v.precio));
 		anomalias.push({
-			sku: f.sku,
 			nom: f.nom,
+			skus: [...f.skus],
 			promedio: prom,
-			precio: Math.min(...cants.length ? malas.map((v) => v.precio) : [0]),
-			delta_pct: Math.round((Math.min(...malas.map((v) => v.precio)) / prom - 1) * 100),
+			precio: peor,
+			delta_pct: Math.round((peor / prom - 1) * 100),
 			n: malas.length,
 			nDocs: docs.size || 1,
 			cantMin: Math.min(...cants),
@@ -142,12 +174,6 @@ export function detectarAnomalias(rows, topSkus = null) {
 	}
 	return anomalias.sort((a, b) => a.delta_pct - b.delta_pct).slice(0, 5);
 }
-
-/**
- * Historial detallado de un SKU (progressive disclosure), agrupado por fecha:
- * el mismo dia fracciona en varias facturas (ej. campana de lanzamiento con
- * 21 facturas de 100 und en 3 dias) -> 1 linea por dia con totales.
- */
 export function historialDeSku(rows, sku) {
 	const porDia = new Map();
 	for (const r of rows || []) {
@@ -269,6 +295,7 @@ export async function compararClientesPorSku(idVendedor, sku) {
 
 	return { error: null, data };
 }
+
 
 
 
