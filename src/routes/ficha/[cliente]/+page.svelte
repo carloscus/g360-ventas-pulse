@@ -143,7 +143,8 @@
 
 	function modaCol(sku, key) {
 		const m = modas.get(sku);
-		return m && m[key] !== null && m[key] !== undefined ? fmtSoles(m[key]) : '-';
+		const x = m && m[key];
+		return x ? fmtSoles(x.v) + ' ×' + x.n : '-';
 	}
 
 	function modaDe(m) {
@@ -153,7 +154,7 @@
 		for (const [k, c] of m) {
 			if (c > n) { best = Number(k); n = c; }
 		}
-		return best;
+		return best === null ? null : { v: best, n };
 	}
 
 	async function cargarModas() {
@@ -176,7 +177,7 @@
 			for (const f of filas) {
 				const a = modaDe(conteo.get(f.sku + '|' + anioActual));
 				const b = modaDe(conteo.get(f.sku + '|' + anioPrevio));
-				if (a !== null || b !== null) nuevo.set(f.sku, { a, b });
+				if (a || b) nuevo.set(f.sku, { a, b });
 			}
 			modas = nuevo;
 		} catch (e) {
@@ -555,6 +556,7 @@
 
 
 <ProductSearchModal bind:open={searchOpen} />
+
 
 
 
