@@ -151,7 +151,7 @@ async function cargarCaidas(idVendedor, idsActivos, hoy) {
 			const params = {
 				filters: [eq('id_vendedor', idVendedor), gte('fecha_orig', fechaISO(desde)), lte('fecha_orig', fechaISO(hasta)), 'tipo_operacion=eq.venta'],
 				select: CAIDA_SELECT,
-				order: 'folio_unico.asc',
+				order: 'folio_unico.asc,id.asc',
 				limit: 1000
 			};
 			const res = await cachedGet('ventas-caida', { ...params, offset }, () =>
@@ -182,6 +182,7 @@ async function cargarCaidas(idVendedor, idsActivos, hoy) {
 	}
 	return caidas.sort((a, b) => b.caida_pct - a.caida_pct).slice(0, 5);
 }
+
 
 
 

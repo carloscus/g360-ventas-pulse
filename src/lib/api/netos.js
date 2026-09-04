@@ -15,7 +15,7 @@ async function fetchSlice(idVendedor, desde, hasta) {
 	const params = {
 		filters: [eq('id_vendedor', idVendedor), gte('fecha_orig', desde), lte('fecha_orig', hasta)],
 		select: SELECT,
-		order: 'fecha_orig.asc,folio_unico.asc',
+		order: 'fecha_orig.asc,folio_unico.asc,id.asc',
 		limit: PAGE_SIZE
 	};
 	let offset = 0;
@@ -162,5 +162,6 @@ export async function cargarNetos(idVendedor, desde, hasta) {
 		periodos: { a: { desde, hasta }, b: { desde: desdeB, hasta: hastaB }, c: { desde: desdeC, hasta: hastaC } }
 	};
 }
+
 
 

@@ -349,7 +349,7 @@
 									<div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-[11px] text-g360-muted dark:text-g360-mutedDark">
 										{#each a.anios as y, i}
 											<span>
-												<b class="text-g360-text dark:text-g360-textDark">{y.anio}</b> {y.prom.toFixed(2)} {#if y.min !== y.max} ({y.min.toFixed(2)}-{y.max.toFixed(2)}){/if}
+												<b class="text-g360-text dark:text-g360-textDark">{y.anio}</b> {y.moda === null ? y.prom.toFixed(2) : y.moda.toFixed(2) + ' x' + y.modaN} {#if y.min.toFixed(2) !== y.max.toFixed(2)} · prom {y.promPond.toFixed(2)} ({y.min.toFixed(2)}-{y.max.toFixed(2)}){:else} · unico{/if}
 											</span>
 											{#if a.variaciones && a.variaciones[i] != null}
 												{@const v = a.variaciones[i]}

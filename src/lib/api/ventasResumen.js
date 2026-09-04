@@ -9,7 +9,7 @@ async function ventasAnio(idVendedor, anio) {
 	const params = {
 		filters: [eq('id_vendedor', idVendedor), gte('fecha_orig', desde), lte('fecha_orig', hasta), eq('tipo_operacion', 'venta')],
 		select: SELECT,
-		order: 'folio_unico.asc'
+		order: 'folio_unico.asc,id.asc'
 	};
 	let offset = 0;
 	const todas = [];
@@ -99,4 +99,5 @@ export async function cargarResumenVentas(idVendedor, hoy = new Date()) {
 
 	return res;
 }
+
 

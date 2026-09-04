@@ -28,7 +28,7 @@ async function _cargarClientes(idVendedor, desde, hasta) {
 	const todas = [];
 	let source = 'network';
 	while (true) {
-		const params = { filters, select: SELECT_CLIENTES, order: 'folio_unico.asc', limit: PAGE_SIZE };
+		const params = { filters, select: SELECT_CLIENTES, order: 'folio_unico.asc,id.asc', limit: PAGE_SIZE };
 		const res = await cachedGet(
 			'ventas',
 			{ ...params, offset },
@@ -66,6 +66,7 @@ export function agruparClientes(rows) {
 	}
 	return { clientes: [...porCliente.values()].sort((a, b) => b.ultima.localeCompare(a.ultima)), nomVendedor };
 }
+
 
 
 

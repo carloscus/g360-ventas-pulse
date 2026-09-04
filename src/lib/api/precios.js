@@ -15,7 +15,7 @@ async function fetchPaginaPrecios(idCliente, desde, hasta, offset) {
 	const params = {
 		filters: [eq('id_cliente', idCliente), gte('fecha_orig', desde), lte('fecha_orig', hasta)],
 		select: SELECT,
-		order: 'fecha_orig.asc,folio_unico.asc',
+		order: 'fecha_orig.asc,folio_unico.asc,id.asc',
 		limit: 1000
 	};
 	const res = await cachedGet('vw_historial_precios', { ...params, offset }, () =>
@@ -114,20 +114,38 @@ export function analisisAnual(rows, topSkus = null) {
 			const anio = String(v.fecha || '').slice(0, 4);
 			if (!anio) continue;
 			if (!porAnio.has(anio)) porAnio.set(anio, []);
-			porAnio.get(anio).push(v.precio);
+			porAnio.get(anio).push(v);
 		}
 		if (porAnio.size === 0) continue;
 
 		// Solo los ultimos 3 anios con datos: actual vs anterior vs antepenultimo
 		const anios = [...porAnio.keys()].sort().slice(-3);
 		const resumenAnios = anios.map((a) => {
-			const precios = porAnio.get(a);
+			const vs = porAnio.get(a);
+			const precios = vs.map((v) => v.precio);
+			// moda: precio mas repetido (2 decimales) con su conteo
+			const freq = new Map();
+			for (const p of precios) {
+				const k = p.toFixed(2);
+				freq.set(k, (freq.get(k) || 0) + 1);
+			}
+			let modaK = null;
+			let modaN = 0;
+			for (const [k, n] of freq) {
+				if (n > modaN) { modaK = k; modaN = n; }
+			}
+			// promedio ponderado por cantidad (precio realizado real)
+			const cantTot = vs.reduce((s, v) => s + (v.cantidad || 0), 0);
+			const pond = cantTot > 0 ? vs.reduce((s, v) => s + v.precio * (v.cantidad || 0), 0) / cantTot : 0;
 			return {
 				anio: a,
 				prom: precios.reduce((x, y) => x + y, 0) / precios.length,
+				promPond: pond,
+				moda: modaK === null ? null : Number(modaK),
+				modaN,
+				n: precios.length,
 				min: Math.min(...precios),
-				max: Math.max(...precios),
-				n: precios.length
+				max: Math.max(...precios)
 			};
 		});
 
@@ -136,8 +154,10 @@ export function analisisAnual(rows, topSkus = null) {
 		for (let i = 1; i < resumenAnios.length; i++) {
 			const prev = resumenAnios[i - 1];
 			const act = resumenAnios[i];
-			if (prev.prom > 0) {
-				variaciones.push({ de: prev.anio, a: act.anio, pct: (act.prom - prev.prom) / prev.prom });
+			const base = prev.promPond || prev.prom;
+			const actual = act.promPond || act.prom;
+			if (base > 0) {
+				variaciones.push({ de: prev.anio, a: act.anio, pct: (actual - base) / base });
 			}
 		}
 		const variacion = variaciones.length > 0 ? variaciones[variaciones.length - 1].pct : null;
@@ -355,6 +375,9 @@ export async function compararClientesPorSku(idVendedor, sku) {
 
 	return { error: null, data };
 }
+
+
+
 
 
 
