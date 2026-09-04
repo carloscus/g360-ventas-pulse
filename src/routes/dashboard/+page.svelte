@@ -225,7 +225,7 @@
 						<div class="glass-card p-3 text-center">
 							<p class="text-[10px] text-g360-muted dark:text-g360-mutedDark">Mes en curso</p>
 							<p class="text-base font-bold text-primary-700 dark:text-primary-400">{fmtSoles(resumenVentas.mesActual.soles)}</p>
-							<p class="text-[9px] text-g360-muted dark:text-g360-mutedDark">{resumenVentas.mesActual.mes} (en curso)</p>
+							<p class="text-[10px] text-g360-muted dark:text-g360-mutedDark">{resumenVentas.mesActual.mes} (en curso)</p>
 						</div>
 						<div class="glass-card p-3 text-center">
 							<p class="text-[10px] text-g360-muted dark:text-g360-mutedDark">Mes anterior</p>
@@ -262,7 +262,7 @@
 										style="height: {Math.max(Math.round((m.soles / maxMes) * 64), 2)}px"
 										title="{m.mes}: {fmtSoles(m.soles)}"
 									></div>
-									<span class="text-[9px] text-g360-muted dark:text-g360-mutedDark">{m.mes.slice(5)}</span>
+									<span class="text-[10px] text-g360-muted dark:text-g360-mutedDark">{m.mes.slice(5)}</span>
 								</div>
 							{/each}
 						</div>
@@ -316,6 +316,7 @@
 <ProductSearchModal bind:open={searchOpen} />
 
 <G360Signature version="1.0.0" />
+
 
 
 

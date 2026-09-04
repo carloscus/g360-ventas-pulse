@@ -111,13 +111,13 @@
 		width: 48px;
 		height: 48px;
 		border-radius: 50%;
-		background: #008f5d;
+		background: #007a4f;
 		color: #fff;
 		font-size: 12px;
 		font-weight: 800;
 		letter-spacing: 0.5px;
 		border: none;
-		box-shadow: 0 6px 16px rgba(0, 143, 93, 0.4);
+		box-shadow: 0 6px 16px rgba(0, 122, 79, 0.4);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -130,7 +130,7 @@
 	.igv-fab:hover,
 	.igv-fab:active {
 		transform: scale(1.06);
-		box-shadow: 0 8px 20px rgba(0, 143, 93, 0.5);
+		box-shadow: 0 8px 20px rgba(0, 122, 79, 0.5);
 	}
 
 	:global(.dark) .igv-fab {
@@ -138,3 +138,4 @@
 		color: #0b1220;
 	}
 </style>
+

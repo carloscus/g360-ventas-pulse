@@ -243,7 +243,7 @@
 									style="height: {Math.max(Math.round((m.soles / maxV) * 80), 2)}px"
 									title="{m.mes}: {fmtSoles(m.soles)}"
 								></div>
-								<span class="text-[9px] text-g360-muted dark:text-g360-mutedDark truncate w-full text-center">{m.mes.slice(5)}</span>
+								<span class="text-[10px] text-g360-muted dark:text-g360-mutedDark truncate w-full text-center">{m.mes.slice(5)}</span>
 							</div>
 						{/each}
 					</div>
@@ -341,12 +341,12 @@
 										{#if comparativaCargando}
 											<p class="text-[11px] text-g360-muted dark:text-g360-mutedDark mt-1">Comparando clientes...</p>
 										{:else if comparativa.length > 0}
-											<div class="mt-1 ml-2 border-l-2 border-warning-300 dark:border-warning-700 pl-2 space-y-0.5">
+											<div class="mt-1 ml-2 border-l border-warning-400/70 dark:border-warning-600/60 pl-2 space-y-0.5">
 												{#each comparativa as cp}
 													<div class="text-[11px] {cp.id_cliente === clienteId ? 'font-bold text-g360-text dark:text-g360-textDark' : 'text-g360-muted dark:text-g360-mutedDark'}">
 														<div class="flex justify-between gap-2">
 															<span class="truncate">{cp.nom_cliente}</span>
-															<span class="shrink-0 font-semibold">S/{cp.ultimo.precio.toFixed(2)}{#if cp.ncConteo > 0} <span class="text-warning-700 dark:text-warning-400 text-[9px]">NCx{cp.ncConteo}</span>{/if}</span>
+															<span class="shrink-0 font-semibold">S/{cp.ultimo.precio.toFixed(2)}{#if cp.ncConteo > 0} <span class="text-warning-700 dark:text-warning-400 text-[10px]">NCx{cp.ncConteo}</span>{/if}</span>
 														</div>
 														<div class="flex justify-between gap-2 opacity-60">
 															<span>ult: {cp.ultimo.fecha} x{fmtNum(cp.ultimo.cantidad)}{cp.ultimo.folio ? ` F.${cp.ultimo.folio}` : ''} - rango {cp.min.precio.toFixed(2)} ({fmtNum(cp.min.cantidad)}) a {cp.max.precio.toFixed(2)} ({fmtNum(cp.max.cantidad)})</span>
@@ -360,7 +360,7 @@
 									{/if}
 									{#if skuExpandido === a.sku}
 									{@const hist = historialDeSku(historialRows, a.sku)}
-									<div class="mt-2 pl-2 border-l-2 border-primary-200 dark:border-primary-800">
+									<div class="mt-2 pl-2 border-l border-primary-400/60 dark:border-primary-600/50">
 										{#each hist.slice(0, 15) as h}
 											<div class="text-[11px] py-0.5">
 												<div class="flex justify-between gap-2">
@@ -433,7 +433,7 @@
 							<td class="py-2.5 px-3 text-right {f.devuelto_und > 0 ? 'text-danger-600 dark:text-danger-400 font-semibold' : ''}">
 								{f.devuelto_und > 0 ? fmtNum(f.devuelto_und) : '—'}
 							</td>
-							<td class="py-2.5 px-3 text-right">{#if stockMapa}{#if disponibleSku(stockMapa, f.sku) !== null}<span class="badge {clasificarStock(disponibleSku(stockMapa, f.sku)) === 'ok' ? 'badge-success' : clasificarStock(disponibleSku(stockMapa, f.sku)) === 'bajo' ? 'badge-warning' : 'badge-danger'} px-1.5 py-0 text-[10px]">{fmtNum(disponibleSku(stockMapa, f.sku))}</span>{:else}<span class="opacity-50">-</span>{/if}{:else}<span class="opacity-60 text-g360-muted dark:text-g360-mutedDark">s/d</span>{/if}</td>
+							<td class="py-2.5 px-3 text-right">{#if stockMapa}{#if disponibleSku(stockMapa, f.sku) !== null}<span class="badge {clasificarStock(disponibleSku(stockMapa, f.sku)) === 'ok' ? 'badge-success' : clasificarStock(disponibleSku(stockMapa, f.sku)) === 'bajo' ? 'badge-warning' : 'badge-danger'} px-1.5 py-0 text-[10px]">{fmtNum(disponibleSku(stockMapa, f.sku))}</span>{:else}<span class="opacity-60">-</span>{/if}{:else}<span class="opacity-60 text-g360-muted dark:text-g360-mutedDark">s/d</span>{/if}</td>
 							<td class="py-2.5 px-3 text-right">{fmtSoles(f.saldo_soles)}</td>
 						</tr>
 						{#if skuDetalle === f.sku}
@@ -474,6 +474,8 @@
 
 
 <ProductSearchModal bind:open={searchOpen} />
+
+
 
 
 

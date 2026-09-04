@@ -311,10 +311,10 @@
 												<p class="text-[10px] text-g360-muted dark:text-g360-mutedDark">a tu cliente:</p>
 												<p class="text-sm font-bold text-primary-700 dark:text-primary-400 leading-tight">
 													{fmtSoles(p.precioCliente[0].precio)}
-													<span class="text-[9px] opacity-70">x{fmtNum(p.precioCliente[0].cantidad)} {p.precioCliente[0].fecha?.slice(5)}</span>
+													<span class="text-[10px] opacity-70">x{fmtNum(p.precioCliente[0].cantidad)} {p.precioCliente[0].fecha?.slice(5)}</span>
 												</p>
 												{#if p.precioCliente[0].doc}
-													<p class="text-[9px] text-g360-muted dark:text-g360-mutedDark leading-tight">F. {p.precioCliente[0].doc}</p>
+													<p class="text-[10px] text-g360-muted dark:text-g360-mutedDark leading-tight">F. {p.precioCliente[0].doc}</p>
 												{/if}
 												{#if p.precioCliente[1]}
 													<p class="text-[10px] text-g360-muted dark:text-g360-mutedDark leading-tight">
@@ -322,7 +322,7 @@
 													</p>
 												{/if}
 												{#if p.ncCliente}
-													<p class="text-[9px] text-warning-700 dark:text-warning-400 font-semibold leading-tight">
+													<p class="text-[10px] text-warning-700 dark:text-warning-400 font-semibold leading-tight">
 														NC: {p.ncCliente.n} por {fmtSoles(p.ncCliente.soles)}
 													</p>
 												{/if}
@@ -350,7 +350,7 @@
 												{#each comparativa as cp}
 													<div class="text-[11px] flex justify-between gap-2 {cp.id_cliente === clienteCtx?.id ? 'font-bold text-g360-text dark:text-g360-textDark' : 'text-g360-muted dark:text-g360-mutedDark'}">
 														<span class="truncate">{cp.nom_cliente}</span>
-														<span class="shrink-0 font-semibold">S/{cp.ultimo.precio.toFixed(2)}{#if cp.ncConteo > 0} <span class="text-warning-700 dark:text-warning-400 text-[9px]">NCx{cp.ncConteo}</span>{/if}</span>
+														<span class="shrink-0 font-semibold">S/{cp.ultimo.precio.toFixed(2)}{#if cp.ncConteo > 0} <span class="text-warning-700 dark:text-warning-400 text-[10px]">NCx{cp.ncConteo}</span>{/if}</span>
 													</div>
 													<div class="text-[10px] flex justify-between gap-2 opacity-70">
 														<span>ult: {cp.ultimo.fecha} x{fmtNum(cp.ultimo.cantidad)}{cp.ultimo.folio ? ` F.${cp.ultimo.folio}` : ''}</span>
@@ -380,7 +380,7 @@
 									>
 										<div class="min-w-0">
 											<p class="text-sm font-semibold text-g360-text dark:text-g360-textDark truncate">
-												{c.nom_cliente}{#if clienteCtx?.id === c.id_cliente} <span class="badge badge-primary px-1.5 py-0 text-[9px]">abierto</span>{/if}
+												{c.nom_cliente}{#if clienteCtx?.id === c.id_cliente} <span class="badge badge-primary px-1.5 py-0 text-[10px]">abierto</span>{/if}
 											</p>
 											<p class="text-xs text-g360-muted dark:text-g360-mutedDark">
 												{displayCliente(c.id_cliente)} - última compra {c.ultima}
@@ -397,6 +397,7 @@
 		</div>
 	</div>
 {/if}
+
 
 
 

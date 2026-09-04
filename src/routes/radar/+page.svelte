@@ -122,7 +122,7 @@
 				<p class="text-xs text-g360-muted dark:text-g360-mutedDark">
 					Vendedor {displayVendedor(vendedor?.id)}{#if nomVendedor} - {nomVendedor}{/if} · Datos hasta 16:00 (Perú)
 					{#if stockMeta?.stale}
-						<span class="badge badge-warning px-1.5 py-0 text-[9px]">obsoleto</span>
+						<span class="badge badge-warning px-1.5 py-0 text-[10px]">obsoleto</span>
 					{/if}
 					{#if stockMeta?.fecha_descarga} · stock {new Date(stockMeta.fecha_descarga).toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit' })}{/if}
 				</p>
@@ -213,6 +213,7 @@
 </div>
 
 <G360Signature version="1.0.0" />
+
 
 
 
