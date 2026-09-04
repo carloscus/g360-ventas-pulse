@@ -1,5 +1,6 @@
 <script>
 	import { IGV_PORCENTAJE } from '$lib/utils/igv.js';
+	import { calculadoraSolicitud, limpiarSolicitud } from '$lib/stores/calculadora.js';
 	import { fmtSoles } from '$lib/utils/format.js';
 
 	/**
