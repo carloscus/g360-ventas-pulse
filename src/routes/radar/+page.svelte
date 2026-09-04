@@ -10,6 +10,7 @@
 	import { cargarClientesVendedor } from '$lib/api/clientes.js';
 	import { cargarRadar, priorizarRadar, adjuntarStock } from '$lib/api/radar.js';
 	import { getStockMapa, disponibleSku, clasificarStock } from '$lib/api/stock.js';
+	import { pullToRefresh } from '$lib/actions/ptr.js';
 	import { fmtSoles, fmtNum } from '$lib/utils/format.js';
 	import { displayCliente, displayVendedor } from '$lib/utils/display.js';
 	import { setClienteContexto } from '$lib/stores/contexto.js';
@@ -116,7 +117,7 @@
 	<title>Radar - Ventas Cockpit</title>
 </svelte:head>
 
-<div class="min-h-screen px-4 py-6 max-w-3xl mx-auto pb-24">
+<div class="min-h-screen px-4 py-6 max-w-3xl mx-auto pb-24"  use:pullToRefresh={{onRefresh: cargar}}>
 	<header class="flex items-center justify-between mb-4">
 		<div class="flex items-center gap-3">
 			<button class="btn-ghost" on:click={goBack} title="Volver" aria-label="Volver">

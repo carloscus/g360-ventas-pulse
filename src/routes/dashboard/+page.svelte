@@ -4,6 +4,7 @@
 	import { base } from '$app/paths';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 	import ProductSearchModal from '$lib/components/ProductSearchModal.svelte';
+	import { pullToRefresh } from '$lib/actions/ptr.js';
 	import G360Signature from '$lib/components/G360Signature.svelte';
 	import { vendedorActivo, restaurarSesion, setVendedorNombre } from '$lib/stores/vendedor.js';
 	import { cargarDashboard } from '$lib/api/dashboard.js';
@@ -66,7 +67,7 @@
 	<title>Dashboard - Ventas Pulse</title>
 </svelte:head>
 
-<div class="min-h-screen px-4 py-6 max-w-3xl mx-auto pb-24">
+<div class="min-h-screen px-4 py-6 max-w-3xl mx-auto pb-24"  use:pullToRefresh={{onRefresh: cargar}}>
 
 	<header class="flex items-center justify-between mb-5">
 		<div class="flex items-center gap-3">
@@ -219,7 +220,12 @@
 			{#if comoVoy}
 				{#if ventasCargando}
 					<div class="glass-card p-4 mt-2 text-sm text-g360-muted dark:text-g360-mutedDark">
-						Calculando tu anio...
+						{#each [0,1,2] as _}
+							<div class="glass-card p-3 text-center flex-1 animate-pulse">
+								<div class="h-3 bg-g360-surface dark:bg-white/10 rounded w-3/4 mx-auto mb-2"></div>
+								<div class="h-5 bg-g360-surface dark:bg-white/10 rounded w-1/2 mx-auto"></div>
+							</div>
+						{/each}
 					</div>
 				{:else if resumenVentas}
 					<div class="grid grid-cols-3 gap-3 mt-2 mb-3">

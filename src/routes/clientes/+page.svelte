@@ -9,6 +9,7 @@
 	import { fmtSoles, fmtFecha, fechaISO } from '$lib/utils/format.js';
 	import { displayCliente, displayVendedor } from '$lib/utils/display.js';
 	import { setClienteContexto } from '$lib/stores/contexto.js';
+	import { pullToRefresh } from '$lib/actions/ptr.js';
 	import ModuleNav from '$lib/components/ModuleNav.svelte';
 	import { proximoOrden, ordenarPor, indicador } from '$lib/utils/orden.js';
 
@@ -83,7 +84,7 @@
 	<title>Mis Clientes - Ventas Cockpit</title>
 </svelte:head>
 
-<div class="min-h-screen px-4 py-6 max-w-3xl mx-auto">
+<div class="min-h-screen px-4 py-6 max-w-3xl mx-auto"  use:pullToRefresh={{onRefresh: cargar}}>
 
 	<header class="flex items-center justify-between mb-6">
 		<div class="flex items-center gap-3">

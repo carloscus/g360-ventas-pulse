@@ -350,7 +350,9 @@
 				{/if}
 				{#if preciosCargando}
 					<div class="glass-card p-4 mt-2 text-sm text-g360-muted dark:text-g360-mutedDark">
-						Analizando historial de precios...
+						<div class="h-4 bg-g360-surface dark:bg-white/10 rounded w-3/4"></div>
+						<div class="h-4 bg-g360-surface dark:bg-white/10 rounded w-2/3"></div>
+						<div class="h-4 bg-g360-surface dark:bg-white/10 rounded w-1/2"></div>
 					</div>
 				{:else if preciosError}
 					<div class="glass-card p-4 mt-2 text-sm text-center">
