@@ -8,6 +8,7 @@
 	import { cargarNetos } from '$lib/api/netos.js';
 	import { fmtNum, fechaISO } from '$lib/utils/format.js';
 	import { displayVendedor } from '$lib/utils/display.js';
+	import ModuleNav from '$lib/components/ModuleNav.svelte';
 
 	let desde = '';
 	let hasta = '';
@@ -111,6 +112,7 @@
 		</div>
 		<ThemeToggle />
 	</header>
+	<ModuleNav activo="netos" />
 
 	<div class="glass-card p-3 mb-3 flex flex-wrap items-end gap-2">
 		<label class="block grow min-w-[130px]">

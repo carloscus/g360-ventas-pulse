@@ -11,6 +11,7 @@
 	import { fmtSoles, fmtNum } from '$lib/utils/format.js';
 	import { displayCliente, displayVendedor } from '$lib/utils/display.js';
 	import { setClienteContexto } from '$lib/stores/contexto.js';
+	import ModuleNav from '$lib/components/ModuleNav.svelte';
 
 	let cargando = true;
 	let datos = null;
@@ -79,10 +80,10 @@
 		</div>
 		<div class="flex items-center gap-1">
 			<button class="btn-ghost" on:click={() => (searchOpen = true)} title="Buscar producto">Buscar</button>
-			<button class="btn-ghost" on:click={() => goto(`${base}/clientes`)} title="Mis clientes">Clientes</button>
 			<ThemeToggle />
 		</div>
 	</header>
+	<ModuleNav activo="hoy" />
 
 	{#if cargando}
 		<section class="mb-6">
@@ -303,20 +304,15 @@
 				{/if}
 			{/if}
 		</section>
-		<!-- ACCESOS RAPIDOS -->
-		<section>
-			<div class="grid grid-cols-3 gap-3">
-				<button class="btn-secondary" on:click={() => goto(`${base}/clientes`)}>Mis clientes</button>
-				<button class="btn-primary" on:click={() => goto(`${base}/radar`)}>Radar</button>
-				<button class="btn-secondary" on:click={() => goto(`${base}/netos`)}>Montos netos</button>
-			</div>
-		</section>
+
 	{/if}
 </div>
 
 <ProductSearchModal bind:open={searchOpen} />
 
 <G360Signature version="1.0.0" />
+
+
 
 
 

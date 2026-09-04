@@ -9,6 +9,7 @@
 	import { fmtSoles, fmtFecha, fechaISO } from '$lib/utils/format.js';
 	import { displayCliente, displayVendedor } from '$lib/utils/display.js';
 	import { setClienteContexto } from '$lib/stores/contexto.js';
+	import ModuleNav from '$lib/components/ModuleNav.svelte';
 
 
 	let cargando = true;
@@ -92,6 +93,7 @@
 			<button class="btn-ghost" on:click={salir} title="Cambiar de vendedor">Salir</button>
 		</div>
 	</header>
+	<ModuleNav activo="clientes" />
 
 	{#if periodoAjustado}
 		<div class="badge badge-warning mb-4">Tiempo de respuesta agotado: mostrando ultimos 180 dias</div>
