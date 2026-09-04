@@ -11,6 +11,7 @@
 	import { base } from '$app/paths';
 	import { fmtSoles, fmtNum } from '$lib/utils/format.js';
 	import { displayCliente } from '$lib/utils/display.js';
+	import { abrirCalculadora } from '$lib/stores/calculadora.js';
 
 	const dispatch = createEventDispatcher();
 	export let open = false;
@@ -309,10 +310,10 @@
 										<div class="text-right shrink-0">
 											{#if p.precioCliente}
 												<p class="text-[10px] text-g360-muted dark:text-g360-mutedDark">a tu cliente:</p>
-												<p class="text-sm font-bold text-primary-700 dark:text-primary-400 leading-tight">
+												<button class="text-sm font-bold text-primary-700 dark:text-primary-400 leading-tight cursor-pointer" title="Calcular con IGV" on:click={() => abrirCalculadora(p.precioCliente[0].precio)}>
 													{fmtSoles(p.precioCliente[0].precio)}
 													<span class="text-[10px] opacity-70">x{fmtNum(p.precioCliente[0].cantidad)} {p.precioCliente[0].fecha?.slice(5)}</span>
-												</p>
+												</button>
 												{#if p.precioCliente[0].doc}
 													<p class="text-[10px] text-g360-muted dark:text-g360-mutedDark leading-tight">F. {p.precioCliente[0].doc}</p>
 												{/if}
@@ -331,9 +332,9 @@
 												</p>
 											{:else}
 												<p class="text-[10px] text-g360-muted dark:text-g360-mutedDark">precio lista:</p>
-												<p class="text-sm font-bold text-primary-700 dark:text-primary-400 leading-tight">
+												<button class="text-sm font-bold text-primary-700 dark:text-primary-400 leading-tight cursor-pointer" title="Calcular con IGV" on:click={() => abrirCalculadora(p.precio_lista)}>
 													{p.precio_lista ? fmtSoles(p.precio_lista) : '-'}
-												</p>
+												</button>
 											{/if}
 											{#if p.stock !== null && p.stock !== undefined}
 												<span class="badge {claseStock(p.stock)} px-1.5 py-0 text-[10px]">
@@ -350,7 +351,7 @@
 												{#each comparativa as cp}
 													<div class="text-[11px] flex justify-between gap-2 {cp.id_cliente === clienteCtx?.id ? 'font-bold text-g360-text dark:text-g360-textDark' : 'text-g360-muted dark:text-g360-mutedDark'}">
 														<span class="truncate">{cp.nom_cliente}</span>
-														<span class="shrink-0 font-semibold">S/{cp.ultimo.precio.toFixed(2)}{#if cp.ncConteo > 0} <span class="text-warning-700 dark:text-warning-400 text-[10px]">NCx{cp.ncConteo}</span>{/if}</span>
+														<button class="shrink-0 font-semibold cursor-pointer" title="Calcular con IGV" on:click={() => abrirCalculadora(cp.ultimo.precio)}>S/{cp.ultimo.precio.toFixed(2)}{#if cp.ncConteo > 0} <span class="text-warning-700 dark:text-warning-400 text-[10px]">NCx{cp.ncConteo}</span>{/if}</button>
 													</div>
 													<div class="text-[10px] flex justify-between gap-2 opacity-70">
 														<span>ult: {cp.ultimo.fecha} x{fmtNum(cp.ultimo.cantidad)}{cp.ultimo.folio ? ` F.${cp.ultimo.folio}` : ''}</span>
@@ -397,6 +398,9 @@
 		</div>
 	</div>
 {/if}
+
+
+
 
 
 

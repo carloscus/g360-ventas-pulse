@@ -10,6 +10,14 @@
 	let entrada = '';
 	let modo = 'mas'; // 'mas' = base -> con IGV | 'menos' = con IGV -> base
 
+	$: if ($calculadoraSolicitud) {
+		entrada = String($calculadoraSolicitud.valor ?? '');
+		modo = $calculadoraSolicitud.modo || 'mas';
+		abierto = true;
+		limpiarSolicitud();
+		setTimeout(() => document.getElementById('igv-calc-input')?.select(), 80);
+	}
+
 	function parsear(v) {
 		const n = parseFloat(String(v).trim().replace(',', '.'));
 		return Number.isFinite(n) && n > 0 ? n : null;
@@ -33,7 +41,7 @@
 
 {#if abierto}
 	<div
-		class="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
+		class="fixed inset-0 z-[70] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
 		on:click={cerrar}
 		role="button"
 		tabindex="-1"
@@ -107,7 +115,7 @@
 		position: fixed;
 		bottom: 48px;
 		right: 16px;
-		z-index: 40;
+		z-index: 60;
 		width: 48px;
 		height: 48px;
 		border-radius: 50%;
@@ -138,4 +146,5 @@
 		color: #0b1220;
 	}
 </style>
+
 

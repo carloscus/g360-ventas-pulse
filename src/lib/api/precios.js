@@ -113,7 +113,7 @@ export function detectarAnomalias(rows, topSkus = null) {
 			porSku.set(sku, f);
 		}
 		const p = Number(r.precio_unitario);
-		if (p > 0) f.precios.push({ precio: p, cantidad: Number(r.cantidad) || 0, fecha: r.fecha_orig });
+		if (p > 0) f.precios.push({ precio: p, cantidad: Number(r.cantidad) || 0, fecha: r.fecha_orig, folio: [r.serie_doc, r.nro_doc].filter(Boolean).join('-') });
 	}
 
 	const anomalias = [];
@@ -125,6 +125,7 @@ export function detectarAnomalias(rows, topSkus = null) {
 		if (malas.length === 0) continue;
 		const fechas = malas.map((v) => v.fecha).sort();
 		const cants = malas.map((v) => v.cantidad);
+		const docs = new Set(malas.map((v) => v.folio).filter(Boolean));
 		anomalias.push({
 			sku: f.sku,
 			nom: f.nom,
@@ -132,6 +133,7 @@ export function detectarAnomalias(rows, topSkus = null) {
 			precio: Math.min(...cants.length ? malas.map((v) => v.precio) : [0]),
 			delta_pct: Math.round((Math.min(...malas.map((v) => v.precio)) / prom - 1) * 100),
 			n: malas.length,
+			nDocs: docs.size || 1,
 			cantMin: Math.min(...cants),
 			cantMax: Math.max(...cants),
 			fechaDesde: fechas[0],
@@ -267,6 +269,8 @@ export async function compararClientesPorSku(idVendedor, sku) {
 
 	return { error: null, data };
 }
+
+
 
 
 

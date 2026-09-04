@@ -302,7 +302,7 @@
 							</p>
 							{#each anomalias as a (a.sku)}
 								<p class="text-xs text-g360-muted dark:text-g360-mutedDark">
-									{String(a.nom).slice(0, 34)} - {a.n} ventas a S/ {a.precio.toFixed(2)} vs prom S/ {a.promedio.toFixed(2)} ({a.delta_pct}%) · {fmtNum(a.cantMin)}-{fmtNum(a.cantMax)} und · {a.fechaDesde} a {a.fechaHasta}
+									<b class="text-g360-text dark:text-g360-textDark">{String(a.nom).slice(0, 34)}</b> · S/ {a.precio.toFixed(2)} vs prom S/ {a.promedio.toFixed(2)} (<b class="text-warning-700 dark:text-warning-400">{a.delta_pct}%</b>) · {a.n} líneas en {a.nDocs} {a.nDocs > 1 ? 'docs' : 'doc'} · {a.cantMin === a.cantMax ? fmtNum(a.cantMin) + ' und c/u' : fmtNum(a.cantMin) + '-' + fmtNum(a.cantMax) + ' und'} · {a.fechaDesde === a.fechaHasta ? a.fechaDesde : a.fechaDesde + ' a ' + a.fechaHasta}
 								</p>
 							{/each}
 						</div>
