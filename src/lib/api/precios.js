@@ -9,28 +9,82 @@ const SELECT = 'id_articulo,nom_articulo,cantidad,soles,precio_unitario,fecha_or
  * Historial completo de precios del cliente (4 anios, ventas con precio > 0).
  * Cacheado por cliente; usado por el analisis anual y las anomalias.
  */
-export async function cargarHistorialPrecios(idCliente) {
+const VENTANA_ANIOS = 4;
+
+async function fetchPaginaPrecios(idCliente, desde, hasta, offset) {
 	const params = {
-		filters: [eq('id_cliente', idCliente), eq('tipo_operacion', 'venta')],
+		filters: [eq('id_cliente', idCliente), gte('fecha_orig', desde), lte('fecha_orig', hasta)],
 		select: SELECT,
-		order: 'id_articulo.asc,fecha_orig.desc,folio_unico.asc'
+		order: 'fecha_orig.asc,folio_unico.asc',
+		limit: 1000
 	};
-	let offset = 0;
-	const todas = [];
-	while (true) {
-		const res = await cachedGet('vw_historial_precios', { ...params, offset }, () =>
-			postgrestGet('vw_historial_venta_cliente', { ...params, offset })
-		);
-		if (res.error) return { error: res.error, data: [] };
-		const page = res.data || [];
-		todas.push(...page.filter((r) => Number(r.precio_unitario) > 0));
-		if (page.length < 1000) break;
-		offset += 1000;
-		if (offset > 20000) break;
-	}
-	return { error: null, data: todas };
+	const res = await cachedGet('vw_historial_precios', { ...params, offset }, () =>
+		postgrestGet('ventas', { ...params, offset })
+	);
+	return res.error ? { error: res.error, filas: [] } : { error: null, filas: res.data || [] };
 }
 
+async function fetchSlicePrecios(idCliente, desde, hasta) {
+	const filas = [];
+	let offset = 0;
+	while (true) {
+		const r = await fetchPaginaPrecios(idCliente, desde, hasta, offset);
+		if (r.error) return { error: r.error, filas };
+		filas.push(...r.filas);
+		if (r.filas.length < 1000) return { error: null, filas };
+		offset += 1000;
+		if (offset > 10000) return { error: null, filas };
+	}
+}
+
+function rebanadasMesHistorial(desde, hasta) {
+	const out = [];
+	let cur = new Date(`${desde}T00:00:00`);
+	const fin = new Date(`${hasta}T00:00:00`);
+	while (cur <= fin) {
+		const sig = new Date(cur.getFullYear(), cur.getMonth() + 1, 1);
+		const finSlice = new Date(Math.min(sig.getTime() - 86400000, fin.getTime()));
+		out.push([cur.toISOString().slice(0, 10), finSlice.toISOString().slice(0, 10)]);
+		cur = sig;
+	}
+	return out;
+}
+
+/**
+ * Historial de precios del cliente (ventas + NCs; los signos/precios mandan
+ * en los consumidores). Clientes pequenos: 1 request. Clientes grandes
+ * (>1000 filas, ej TAI LOY): cae automaticamente a rebanadas mensuales en
+ * paralelo, que ordenan solo el mes y evitan el statement timeout.
+ */
+export async function cargarHistorialPrecios(idCliente) {
+	const hoy = new Date();
+	const hace4 = new Date(hoy.getTime());
+	hace4.setFullYear(hoy.getFullYear() - VENTANA_ANIOS);
+	const desde = hace4.toISOString().slice(0, 10);
+	const hasta = hoy.toISOString().slice(0, 10);
+
+	const primera = await fetchPaginaPrecios(idCliente, desde, hasta, 0);
+	if (!primera.error && primera.filas.length < 1000) {
+		return { error: null, data: primera.filas };
+	}
+
+	const slices = rebanadasMesHistorial(desde, hasta);
+	// concurrencia limitada: 49 queries paralelos saturan el pool y provocan
+	// timeouts intermitentes; en tandas de 8 es estable
+	const resultados = [];
+	for (let i = 0; i < slices.length; i += 8) {
+		const lote = slices.slice(i, i + 8);
+		resultados.push(...await Promise.all(lote.map(([s, e]) => fetchSlicePrecios(idCliente, s, e))));
+	}
+	const todas = [];
+	let error = primera.error || null;
+	for (const r of resultados) {
+		if (r.error) { error = error || r.error; continue; }
+		todas.push(...r.filas);
+	}
+	if (todas.length === 0) return { error: error || new Error('sin datos'), data: [] };
+	return { error: null, data: todas, incompleto: !!error };
+}
 /**
  * Agregacion anual por SKU: prom/min/max por anio + variacion % del ultimo
  * anio vs anterior. Solo SKUs con >= MIN_VENTAS ventas en el periodo.
@@ -38,13 +92,15 @@ export async function cargarHistorialPrecios(idCliente) {
 export function analisisAnual(rows, topSkus = null) {
 	const porSku = new Map();
 	for (const r of rows || []) {
+		const p = Number(r.precio_unitario);
+		if (!(p > 0)) continue;
 		const sku = String(r.id_articulo);
 		let f = porSku.get(sku);
 		if (!f) {
 			f = { sku, nom: r.nom_articulo || sku, ventas: [] };
 			porSku.set(sku, f);
 		}
-		f.ventas.push({ precio: Number(r.precio_unitario), cantidad: Number(r.cantidad) || 0, fecha: r.fecha_orig });
+		f.ventas.push({ precio: p, cantidad: Number(r.cantidad) || 0, fecha: r.fecha_orig });
 	}
 
 	const resultado = [];
@@ -235,7 +291,7 @@ export async function compararClientesPorSku(idVendedor, sku) {
 	const filas = [];
 	while (true) {
 		const res = await cachedGet('ventas-comparativa', { ...params, offset }, () =>
-			postgrestGet('vw_historial_venta_cliente', { ...params, offset })
+			postgrestGet('ventas', { ...params, offset })
 		);
 		if (res.error) return { error: res.error, data: [] };
 		const page = res.data || [];
@@ -295,6 +351,9 @@ export async function compararClientesPorSku(idVendedor, sku) {
 
 	return { error: null, data };
 }
+
+
+
 
 
 

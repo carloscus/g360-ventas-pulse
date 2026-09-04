@@ -37,6 +37,7 @@
 	let searchOpen = false;
 	let preciosAbierto = false;
 	let preciosCargando = false;
+	let preciosParcial = false;
 	let analisis = [];
 	let anomalias = [];
 	let historialRows = [];
@@ -94,6 +95,7 @@
 		try {
 			const hist = await cargarHistorialPrecios(clienteId);
 			if (hist.error) throw hist.error;
+			preciosParcial = hist.incompleto === true;
 			historialRows = hist.data;
 			analisis = analisisAnual(hist.data);
 			anomalias = detectarAnomalias(hist.data, new Set(analisis.map((a) => a.sku)));
@@ -286,6 +288,9 @@
 				Precios por año {#if !preciosAbierto} (ver){/if}
 			</button>
 			{#if preciosAbierto}
+				{#if preciosParcial}
+					<div class="badge badge-warning my-2">Algun mes no pudo consultarse: datos parciales</div>
+				{/if}
 				{#if preciosCargando}
 					<div class="glass-card p-4 mt-2 text-sm text-g360-muted dark:text-g360-mutedDark">
 						Analizando historial de precios...
@@ -489,6 +494,7 @@
 
 
 <ProductSearchModal bind:open={searchOpen} />
+
 
 
 
