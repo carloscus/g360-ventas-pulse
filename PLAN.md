@@ -59,7 +59,7 @@ las consultas del app tardan 300-2000 ms (full scans). Pasos en
 4. Sin locks transaccionales: el ERP revalida al emitir la NC
 5. Ventana Supabase = 4 años; facturas >4 años → flujo admin con SQLite local
 
-## Refinamientos del radar (pendientes fase 3)
+## Refinamientos del radar (archivada 2026-09-05s fase 3)
 
 1. Filtrar **clientes activos** (última compra de cualquier SKU < ~180 días)
 2. Agrupar compras del **mismo día** como una sola (cadencia actual cuenta
@@ -87,9 +87,9 @@ Crear repo en GitHub como `g360-ventas-pulse` y habilitar Pages desde Actions.
 | Fase | Entrega | Estado |
 |------|---------|--------|
 | A | Dashboard del vendedor + login doble input (vendedor + cliente cartera) + modal producto (adelantado) + optimizaciones cache | ✅ archivada 2026-09-03 |
-| B | Ficha comercial completa (frecuencia, evolucion mensual, top productos, resumen) + cross-sell | ✅ archivable (change `add-fase-b-ficha-comercial`) |
-| C | Analisis de precios anual (prom/min/max por anio, variacion %) + detector de anomalias (argumento volumen) | ✅ archivable (change `add-fase-c-precios-anual`) |
-| D | Resumen ventas (mes actual/anterior/anio anterior + tops + evolucion) + **Montos netos** jerarquicos (`/netos`: cliente→linea→SKU, rango vs -1a vs -2a) | ✅ (`add-fase-d-estadisticas` + `add-netos-jerarquia`) |
+| B | Ficha comercial completa (frecuencia, evolucion mensual, top productos, resumen) + cross-sell | ✅  archivada 2026-09-04 |
+| C | Analisis de precios anual (prom/min/max por anio, variacion %) + detector de anomalias (argumento volumen) | ✅  archivada 2026-09-04 |
+| **D** | Resumen ventas + Montos netos jerarquicos (`/netos`: cliente, linea, SKU, 3 periodos) | ✅ archivada 2026-09-05 |
 
 Fuera de alcance PWA: pedido, devoluciones operativas, NC, aprobaciones.
 
@@ -132,4 +132,15 @@ stock-api, convenciones; requerira Auth+RLS real de fase 4).
   current_date; refresh nocturno 16:00 Peru). No lleva selector de periodo.
 - **Comparativa entre clientes** (modal y ficha): ultimo precio x cantidad con
   numero de factura + rango min-max + NCs por cliente.
+
+
+
+## Mejoras de movil y PWA (aplicadas)
+
+- **Pull-to-refresh**: accion Svelte `ptr.js` en dashboard, clientes y radar (gesto tactil con indicador)
+- **Skeleton loaders**: secciones de carga (Como voy, Precios por ano, comparativa) con barras animadas
+- **Busqueda global**: ProductSearchModal con pestañas Productos + Clientes, busqueda en vivo (debounce 260ms), precios del cliente activo (12m) y comparativa entre clientes (expandible)
+- **Calculadora IGV**: FAB global z-60 sobre modales, resultado en vivo, modo +IGV/-IGV
+- **Datos offline**: FAB IGV, cache 4 capas, badges "Datos desde cache (sin actualizar)", cache stock localStorage + sessionStorage + memoria
+- **Pull-to-refresh**: no implementado nativo (PWA standalone en Android no soporta PTR nativo), accion personalizada Svelte como alternativa
 
