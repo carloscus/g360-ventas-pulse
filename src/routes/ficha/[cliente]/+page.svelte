@@ -225,6 +225,7 @@
 		await cargar();
 	});
 	onDestroy(() => setClienteContexto(null));
+	function goBack() { if (history.length > 1) history.back(); else goto(`${base}/clientes`); }
 </script>
 
 <svelte:head>
@@ -236,7 +237,7 @@
 
 	<header class="flex items-center justify-between mb-4">
 		<div class="flex items-center gap-3 min-w-0">
-			<button class="btn-ghost shrink-0" on:click={() => goto(`${base}/clientes`)} title="Volver a Mis Clientes" aria-label="Volver a Mis Clientes">←</button>
+			<button class="btn-ghost shrink-0" on:click={goBack} title="Volver a Mis Clientes" aria-label="Volver a Mis Clientes">←</button>
 			<div class="min-w-0">
 				<h1 class="text-lg font-bold text-g360-text dark:text-g360-textDark truncate">
 					{rows[0]?.nom_cliente || displayCliente(clienteId)}

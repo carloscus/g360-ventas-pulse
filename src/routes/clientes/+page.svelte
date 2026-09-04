@@ -76,6 +76,7 @@
 		calcularPeriodo();
 		await cargar();
 	});
+	function goBack() { if (history.length > 1) history.back(); else goto(`${base}/dashboard`); }
 </script>
 
 <svelte:head>
@@ -86,7 +87,7 @@
 
 	<header class="flex items-center justify-between mb-6">
 		<div class="flex items-center gap-3">
-			<button class="btn-ghost shrink-0" on:click={() => goto(`${base}/dashboard`)} title="Volver a Hoy" aria-label="Volver a Hoy">←</button>
+			<button class="btn-ghost shrink-0" on:click={goBack} title="Volver a Hoy" aria-label="Volver a Hoy">←</button>
 			<img src="{base}/logo-cipsa.svg" alt="CIPSA" class="h-9 w-auto" />
 			<div>
 				<h1 class="text-lg font-bold text-g360-text dark:text-g360-textDark">Mis Clientes</h1>
@@ -98,7 +99,7 @@
 		<div class="flex items-center gap-1">
 			<button class="btn-secondary" on:click={() => goto(`${base}/radar`)}>Radar</button>
 			<ThemeToggle />
-			<button class="btn-ghost" on:click={salir} title="Cambiar de vendedor">Salir</button>
+			<button class="btn-ghost" on:click={salir} title="Cambiar de vendedor">Cambiar</button>
 		</div>
 	</header>
 	<ModuleNav activo="clientes" />

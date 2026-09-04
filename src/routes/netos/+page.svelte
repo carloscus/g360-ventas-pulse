@@ -121,6 +121,7 @@
 		hastaInput = hasta;
 		await cargar();
 	});
+	function goBack() { if (history.length > 1) history.back(); else goto(`${base}/dashboard`); }
 </script>
 
 <svelte:head>
@@ -130,7 +131,7 @@
 <div class="min-h-screen px-4 py-6 max-w-4xl mx-auto pb-24">
 	<header class="flex items-center justify-between mb-4">
 		<div class="flex items-center gap-3 min-w-0">
-			<button class="btn-ghost shrink-0" on:click={() => goto(`${base}/dashboard`)} title="Volver a Hoy" aria-label="Volver a Hoy">←</button>
+			<button class="btn-ghost shrink-0" on:click={goBack} title="Volver a Hoy" aria-label="Volver a Hoy">←</button>
 			<div class="min-w-0">
 				<h1 class="text-lg font-bold text-g360-text dark:text-g360-textDark">Montos netos</h1>
 				<p class="text-xs text-g360-muted dark:text-g360-mutedDark">

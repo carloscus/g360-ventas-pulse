@@ -109,6 +109,7 @@
 		}
 		await cargar();
 	});
+	function goBack() { if (history.length > 1) history.back(); else goto(`${base}/dashboard`); }
 </script>
 
 <svelte:head>
@@ -118,7 +119,7 @@
 <div class="min-h-screen px-4 py-6 max-w-3xl mx-auto pb-24">
 	<header class="flex items-center justify-between mb-4">
 		<div class="flex items-center gap-3">
-			<button class="btn-ghost" on:click={() => goto(`${base}/clientes`)} title="Volver">
+			<button class="btn-ghost" on:click={goBack} title="Volver" aria-label="Volver">
 </button>
 			<div>
 				<h1 class="text-lg font-bold text-g360-text dark:text-g360-textDark">Radar de recompra</h1>
