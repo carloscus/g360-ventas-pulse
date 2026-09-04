@@ -192,16 +192,16 @@
 								<p class="text-xs text-g360-muted dark:text-g360-mutedDark truncate">{a.cliente}</p>
 							</div>
 							<span class="badge {stockClase(a.clase)} shrink-0">
-								{a.clase === 'sin' ? 'sin stock: no prometer' : 'disponible: ' + fmtNum(a.disponible)}
+								{a.clase === 'sin' ? 'sin stock: no prometer' : a.clase === 'bajo' ? 'bajo: ' + fmtNum(a.disponible) + ' und' : 'disponible: ' + fmtNum(a.disponible)}
 							</span>
 						</li>
 					{/each}
 					{#each datos.caidas as cd (cd.id_cliente)}
 						<li class="glass-card p-3 text-sm flex items-center justify-between gap-3">
 							<div class="min-w-0">
-								<p class="truncate text-g360-text dark:text-g360-textDark">Caida de compras</p>
+								<p class="truncate text-g360-text dark:text-g360-textDark">Caída de compras</p>
 								<p class="text-xs text-g360-muted dark:text-g360-mutedDark">
-									{displayCliente(cd.id_cliente)} - S/ {fmtNum(Math.round(cd.soles_actual))} vs S/ {fmtNum(Math.round(cd.soles_anterior))} (90d previos)
+									{cd.nom_cliente || displayCliente(cd.id_cliente)} · S/ {fmtNum(Math.round(cd.soles_actual))} vs S/ {fmtNum(Math.round(cd.soles_anterior))} (90d previos)
 								</p>
 							</div>
 							<span class="badge badge-danger shrink-0">-{cd.caida_pct}%</span>

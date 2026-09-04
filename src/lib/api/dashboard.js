@@ -160,7 +160,9 @@ async function cargarCaidas(idVendedor, idsActivos, hoy) {
 			if (res.error) break;
 			const page = res.data || [];
 			for (const x of page) {
-				mapa.set(x.id_cliente, (mapa.get(x.id_cliente) || 0) + (Number(x.soles) || 0));
+				const cur = mapa.get(x.id_cliente) || { nom: x.nom_cliente || x.id_cliente, soles: 0 };
+				cur.soles += Number(x.soles) || 0;
+				mapa.set(x.id_cliente, cur);
 			}
 			if (page.length < 1000) break;
 			offset += 1000;
@@ -171,13 +173,13 @@ async function cargarCaidas(idVendedor, idsActivos, hoy) {
 	const [actual, anterior] = await Promise.all([periodo(inicioA, finA), periodo(inicioB, finB)]);
 	const activos = new Set(idsActivos);
 	const caidas = [];
-	for (const [id, solesA] of actual.entries()) {
+	for (const [id, regA] of actual.entries()) {
 		if (!activos.has(id)) continue;
-		const solesB = anterior.get(id) || 0;
+		const solesB = (anterior.get(id) || { soles: 0 }).soles;
 		if (solesB <= 0) continue;
-		const ratio = solesA / solesB;
+		const ratio = regA.soles / solesB;
 		if (ratio < 0.5) {
-			caidas.push({ id_cliente: id, soles_actual: solesA, soles_anterior: solesB, caida_pct: Math.round((1 - ratio) * 100) });
+			caidas.push({ id_cliente: id, nom_cliente: regA.nom, soles_actual: regA.soles, soles_anterior: solesB, caida_pct: Math.round((1 - ratio) * 100) });
 		}
 	}
 	return caidas.sort((a, b) => b.caida_pct - a.caida_pct).slice(0, 5);
