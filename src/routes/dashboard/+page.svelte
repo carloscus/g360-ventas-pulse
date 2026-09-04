@@ -305,9 +305,10 @@
 		</section>
 		<!-- ACCESOS RAPIDOS -->
 		<section>
-			<div class="grid grid-cols-2 gap-3">
+			<div class="grid grid-cols-3 gap-3">
 				<button class="btn-secondary" on:click={() => goto(`${base}/clientes`)}>Mis clientes</button>
 				<button class="btn-primary" on:click={() => goto(`${base}/radar`)}>Radar</button>
+				<button class="btn-secondary" on:click={() => goto(`${base}/netos`)}>Montos netos</button>
 			</div>
 		</section>
 	{/if}
@@ -316,6 +317,7 @@
 <ProductSearchModal bind:open={searchOpen} />
 
 <G360Signature version="1.0.0" />
+
 
 
 

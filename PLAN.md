@@ -89,7 +89,7 @@ Crear repo en GitHub como `g360-ventas-pulse` y habilitar Pages desde Actions.
 | A | Dashboard del vendedor + login doble input (vendedor + cliente cartera) + modal producto (adelantado) + optimizaciones cache | ✅ archivada 2026-09-03 |
 | B | Ficha comercial completa (frecuencia, evolucion mensual, top productos, resumen) + cross-sell | ✅ archivable (change `add-fase-b-ficha-comercial`) |
 | C | Analisis de precios anual (prom/min/max por anio, variacion %) + detector de anomalias (argumento volumen) | ✅ archivable (change `add-fase-c-precios-anual`) |
-| D | Resumen ventas (mes actual/anterior/anio anterior + tops + evolucion) | ✅ archivable (change `add-fase-d-estadisticas`) |
+| D | Resumen ventas (mes actual/anterior/anio anterior + tops + evolucion) + **Montos netos** jerarquicos (`/netos`: cliente→linea→SKU, rango vs -1a vs -2a) | ✅ (`add-fase-d-estadisticas` + `add-netos-jerarquia`) |
 
 Fuera de alcance PWA: pedido, devoluciones operativas, NC, aprobaciones.
 
@@ -132,3 +132,4 @@ stock-api, convenciones; requerira Auth+RLS real de fase 4).
   current_date; refresh nocturno 16:00 Peru). No lleva selector de periodo.
 - **Comparativa entre clientes** (modal y ficha): ultimo precio x cantidad con
   numero de factura + rango min-max + NCs por cliente.
+
