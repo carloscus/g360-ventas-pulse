@@ -1,0 +1,162 @@
+<script>
+	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { base } from '$app/paths';
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import G360Signature from '$lib/components/G360Signature.svelte';
+	import { vendedorActivo, restaurarSesion, cambiarVendedor } from '$lib/stores/vendedor.js';
+	import { cargarClientesVendedor, agruparClientes } from '$lib/api/clientes.js';
+	import { fmtSoles, fmtFecha, fechaISO } from '$lib/utils/format.js';
+	import { displayCliente, displayVendedor } from '$lib/utils/display.js';
+	import { setClienteContexto } from '$lib/stores/contexto.js';
+
+
+	let cargando = true;
+	let resultado = null;
+	let error = null;
+	let clientes = [];
+	let periodoDesde = '';
+	let periodoHasta = '';
+	let periodoAjustado = false;
+	let nomVendedor = '';
+
+	$: vendedor = $vendedorActivo;
+
+	function calcularPeriodo() {
+		const hoy = new Date();
+		const desde = new Date(hoy);
+		desde.setDate(hoy.getDate() - 180);
+		periodoDesde = fechaISO(desde);
+		periodoHasta = fechaISO(hoy);
+	}
+
+	async function cargar() {
+		if (!vendedor) return;
+		cargando = true;
+		error = null;
+		const res = await cargarClientesVendedor(vendedor.id, periodoDesde, periodoHasta);
+		if (res.error) {
+			error = res.error;
+			clientes = [];
+		} else {
+			const g = agruparClientes(res.data || []);
+			clientes = g.clientes;
+			if (!nomVendedor && g.nomVendedor) nomVendedor = g.nomVendedor;
+			resultado = res;
+			periodoAjustado = Boolean(res.periodoAjustado);
+		}
+		cargando = false;
+	}
+
+	function abrirFicha(cliente) {
+		goto(`${base}/ficha/${encodeURIComponent(cliente.id_cliente)}`);
+	}
+
+	async function salir() {
+		await cambiarVendedor();
+		goto(base || '/');
+	}
+
+	onMount(async () => {
+		setClienteContexto(null);
+		const sesion = $vendedorActivo || (await restaurarSesion());
+		if (!sesion) {
+			goto(base || '/');
+			return;
+		}
+		calcularPeriodo();
+		await cargar();
+	});
+</script>
+
+<svelte:head>
+	<title>Mis Clientes - Ventas Cockpit</title>
+</svelte:head>
+
+<div class="min-h-screen px-4 py-6 max-w-3xl mx-auto">
+
+	<header class="flex items-center justify-between mb-6">
+		<div class="flex items-center gap-3">
+			<button class="btn-ghost shrink-0" on:click={() => goto(`${base}/dashboard`)} title="Volver a Hoy" aria-label="Volver a Hoy">←</button>
+			<img src="{base}/logo-cipsa.svg" alt="CIPSA" class="h-9 w-auto" />
+			<div>
+				<h1 class="text-lg font-bold text-g360-text dark:text-g360-textDark">Mis Clientes</h1>
+				<p class="text-xs text-g360-muted dark:text-g360-mutedDark">
+					Vendedor {displayVendedor(vendedor?.id)}{#if nomVendedor} - {nomVendedor}{/if} · {periodoDesde} a {periodoHasta}
+				</p>
+			</div>
+		</div>
+		<div class="flex items-center gap-1">
+			<button class="btn-secondary" on:click={() => goto(`${base}/radar`)}>Radar</button>
+			<ThemeToggle />
+			<button class="btn-ghost" on:click={salir} title="Cambiar de vendedor">Salir</button>
+		</div>
+	</header>
+
+	{#if periodoAjustado}
+		<div class="badge badge-warning mb-4">Tiempo de respuesta agotado: mostrando ultimos 180 dias</div>
+	{/if}
+
+	{#if resultado && resultado.source && resultado.source !== 'network'}
+		<div class="badge badge-warning mb-4">Datos offline (cache)</div>
+	{/if}
+
+	{#if cargando}
+		<div class="glass-card p-8 text-center text-g360-muted dark:text-g360-mutedDark">
+			Cargando clientes…
+		</div>
+	{:else if error}
+		<div class="glass-card p-8 text-center">
+			<p class="text-danger-600 dark:text-danger-400 font-semibold mb-2">
+				No se pudo cargar la lista de clientes
+			</p>
+			<p class="text-xs text-g360-muted dark:text-g360-mutedDark mb-4">{error.message || error}</p>
+			<button class="btn-primary" on:click={cargar}>Reintentar</button>
+		</div>
+	{:else if clientes.length === 0}
+		<div class="glass-card p-8 text-center text-g360-muted dark:text-g360-mutedDark">
+			<p class="font-semibold mb-1">Sin clientes en el período</p>
+			<p class="text-xs">No hay ventas registradas para el vendedor {displayVendedor(vendedor?.id)} entre {periodoDesde} y {periodoHasta}.</p>
+		</div>
+	{:else}
+		<ul class="space-y-2">
+			{#each clientes as c (c.id_cliente)}
+				<li>
+					<button
+						class="glass-card w-full text-left p-4 flex items-center justify-between gap-3 active:scale-[0.99] transition-transform"
+						on:click={() => abrirFicha(c)}
+					>
+						<div class="min-w-0">
+							<p class="font-semibold text-g360-text dark:text-g360-textDark truncate">
+								{c.nom_cliente}
+							</p>
+							<p class="text-xs text-g360-muted dark:text-g360-mutedDark">
+								{displayCliente(c.id_cliente)} · Última compra: {fmtFecha(c.ultima)}
+							</p>
+						</div>
+						<div class="text-right shrink-0 max-w-[45%]">
+							<p class="font-bold text-primary-700 dark:text-primary-400">{fmtSoles(c.monto)}</p>
+						</div>
+					</button>
+				</li>
+			{/each}
+		</ul>
+	{/if}
+</div>
+
+<G360Signature cliente="CIPSA" version="1.0.0" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
