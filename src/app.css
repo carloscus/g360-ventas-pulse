@@ -84,6 +84,10 @@
 		@apply text-sm sm:text-base font-bold text-g360-text dark:text-g360-textDark flex items-center gap-2;
 	}
 
+	button.section-title {
+		@apply cursor-pointer hover:opacity-80 active:scale-[0.99] transition-all duration-100;
+	}
+
 	.section-title svg {
 		@apply w-5 h-5 text-primary-600 dark:text-primary-400;
 	}

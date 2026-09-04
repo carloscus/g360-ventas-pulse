@@ -334,7 +334,7 @@
 									</div>
 								</button>
 								<div class="mt-1">
-										<button class="text-[10px] text-primary-700 dark:text-primary-400 font-semibold" on:click={() => toggleComparativa(a.sku)}>
+										<button class="text-[10px] text-primary-700 dark:text-primary-400 font-semibold py-2 min-h-[44px]" on:click={() => toggleComparativa(a.sku)}>
 											{comparativaSku === a.sku ? 'Ocultar' : 'Comparar'} precios entre mis clientes
 										</button>
 									</div>
@@ -398,7 +398,7 @@
 			{/if}
 		</section>
 		<div class="glass-card overflow-x-auto">
-			<table class="w-full text-sm min-w-[860px]">
+			<table class="w-full text-sm min-w-[860px] tabular-nums">
 				<thead>
 					<tr class="text-left text-xs uppercase tracking-wide text-g360-muted dark:text-g360-mutedDark border-b border-g360-surface/60 dark:border-white/10">
 						<th class="py-3 px-3">SKU</th>
@@ -434,7 +434,7 @@
 							<td class="py-2.5 px-3 text-right {f.devuelto_und > 0 ? 'text-danger-600 dark:text-danger-400 font-semibold' : ''}">
 								{f.devuelto_und > 0 ? fmtNum(f.devuelto_und) : '—'}
 							</td>
-							<td class="py-2.5 px-3 text-right">{#if stockMapa}{#if disponibleSku(stockMapa, f.sku) !== null}<span class="badge {clasificarStock(disponibleSku(stockMapa, f.sku)) === 'ok' ? 'badge-success' : clasificarStock(disponibleSku(stockMapa, f.sku)) === 'bajo' ? 'badge-warning' : 'badge-danger'} px-1.5 py-0 text-[10px]">{fmtNum(disponibleSku(stockMapa, f.sku))}</span>{:else}<span class="opacity-50">-</span>{/if}{:else}<span class="opacity-50">s/d</span>{/if}</td>
+							<td class="py-2.5 px-3 text-right">{#if stockMapa}{#if disponibleSku(stockMapa, f.sku) !== null}<span class="badge {clasificarStock(disponibleSku(stockMapa, f.sku)) === 'ok' ? 'badge-success' : clasificarStock(disponibleSku(stockMapa, f.sku)) === 'bajo' ? 'badge-warning' : 'badge-danger'} px-1.5 py-0 text-[10px]">{fmtNum(disponibleSku(stockMapa, f.sku))}</span>{:else}<span class="opacity-50">-</span>{/if}{:else}<span class="opacity-60 text-g360-muted dark:text-g360-mutedDark">s/d</span>{/if}</td>
 							<td class="py-2.5 px-3 text-right">{fmtSoles(f.saldo_soles)}</td>
 						</tr>
 						{#if skuDetalle === f.sku}
@@ -463,7 +463,7 @@
 </div>
 
 
-<G360Signature cliente="CIPSA" version="1.0.0" />
+<G360Signature version="1.0.0" />
 
 
 
@@ -475,6 +475,8 @@
 
 
 <ProductSearchModal bind:open={searchOpen} />
+
+
 
 
 

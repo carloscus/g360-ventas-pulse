@@ -180,7 +180,7 @@
 						<div class="text-right shrink-0 max-w-[40%]">
 							<p class="font-bold text-primary-700 dark:text-primary-400">{fmtSoles(c.valorTotal)}</p>
 							<button
-								class="btn-ghost text-xs px-3 py-1 min-h-[36px] {rutaIds.includes(c.id_cliente) ? 'text-success-600 dark:text-success-400 font-bold' : ''}"
+								class="btn-ghost text-xs px-3 py-1 min-h-[44px] {rutaIds.includes(c.id_cliente) ? 'text-success-600 dark:text-success-400 font-bold' : ''}"
 								on:click={() => marcar(c.id_cliente)}
 							>
 								{rutaIds.includes(c.id_cliente) ? '✓ En ruta' : '+ Agregar'}
@@ -212,7 +212,9 @@
 	{/if}
 </div>
 
-<G360Signature cliente="CIPSA" version="1.0.0" />
+<G360Signature version="1.0.0" />
+
+
 
 
 

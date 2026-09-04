@@ -118,4 +118,5 @@
 	</div>
 </div>
 
-<G360Signature cliente="CIPSA" version="1.0.0" />
+<G360Signature version="1.0.0" />
+
