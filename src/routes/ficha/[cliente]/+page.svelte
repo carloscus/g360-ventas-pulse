@@ -38,6 +38,7 @@
 	let preciosAbierto = false;
 	let preciosCargando = false;
 	let preciosParcial = false;
+	let preciosError = null;
 	let analisis = [];
 	let anomalias = [];
 	let historialRows = [];
@@ -88,9 +89,9 @@
 	}
 
 
-	async function togglePrecios() {
-		preciosAbierto = !preciosAbierto;
-		if (!preciosAbierto || analisis.length > 0) return;
+	async function cargarPrecios() {
+		if (analisis.length > 0) return;
+		preciosError = null;
 		preciosCargando = true;
 		try {
 			const hist = await cargarHistorialPrecios(clienteId);
@@ -101,9 +102,15 @@
 			anomalias = detectarAnomalias(hist.data, new Set(analisis.map((a) => a.sku)));
 		} catch (e) {
 			console.error('Error analizando precios:', e);
+			preciosError = e;
 		} finally {
 			preciosCargando = false;
 		}
+	}
+
+	async function togglePrecios() {
+		preciosAbierto = !preciosAbierto;
+		if (preciosAbierto) await cargarPrecios();
 	}
 
 	async function toggleComparativa(sku) {
@@ -294,6 +301,11 @@
 				{#if preciosCargando}
 					<div class="glass-card p-4 mt-2 text-sm text-g360-muted dark:text-g360-mutedDark">
 						Analizando historial de precios...
+					</div>
+				{:else if preciosError}
+					<div class="glass-card p-4 mt-2 text-sm text-center">
+						<p class="text-danger-600 dark:text-danger-400 font-semibold mb-2">No se pudo analizar el historial</p>
+						<button class="btn-secondary" on:click={cargarPrecios}>Reintentar</button>
 					</div>
 				{:else if analisis.length === 0}
 					<div class="glass-card p-4 mt-2 text-sm text-g360-muted dark:text-g360-mutedDark">
@@ -494,6 +506,8 @@
 
 
 <ProductSearchModal bind:open={searchOpen} />
+
+
 
 
 

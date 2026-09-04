@@ -72,8 +72,20 @@ export function evolucionMensual(rows) {
 		if (!mes) continue;
 		porMes.set(mes, (porMes.get(mes) || 0) + (Number(r.soles) || 0));
 	}
-	const meses = [...porMes.keys()].sort();
-	return meses.map((m) => ({ mes: m, soles: porMes.get(m) }));
+	if (porMes.size === 0) return [];
+	// serie continua: rellena meses sin ventas con 0 (eje honesto)
+	const [y0, m0] = [...porMes.keys()].sort()[0].split('-').map(Number);
+	const [y1, m1] = [...porMes.keys()].sort().at(-1).split('-').map(Number);
+	const out = [];
+	let y = y0;
+	let m = m0;
+	while (y < y1 || (y === y1 && m <= m1)) {
+		const k = y + '-' + String(m).padStart(2, '0');
+		out.push({ mes: k, soles: porMes.get(k) || 0 });
+		m++;
+		if (m > 12) { m = 1; y++; }
+	}
+	return out;
 }
 
 /**
@@ -114,4 +126,5 @@ export async function cargarCrossSell(idCliente, lineasCliente, idsClientesVende
 
 	return lista.sort((a, b) => b.similarCount - a.similarCount).slice(0, 5);
 }
+
 

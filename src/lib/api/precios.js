@@ -92,6 +92,7 @@ export async function cargarHistorialPrecios(idCliente) {
 export function analisisAnual(rows, topSkus = null) {
 	const porSku = new Map();
 	for (const r of rows || []) {
+		if (r.tipo_operacion && r.tipo_operacion !== 'venta') continue;
 		const p = Number(r.precio_unitario);
 		if (!(p > 0)) continue;
 		const sku = String(r.id_articulo);
@@ -176,6 +177,7 @@ function claveProducto(nombre) {
 export function detectarAnomalias(rows, topSkus = null) {
 	const porProducto = new Map();
 	for (const r of rows || []) {
+		if (r.tipo_operacion && r.tipo_operacion !== 'venta') continue;
 		const sku = String(r.id_articulo);
 		if (topSkus && !topSkus.has(sku)) continue;
 		const p = Number(r.precio_unitario);
@@ -245,6 +247,7 @@ export function historialDeSku(rows, sku) {
 			d.ncConteo += 1;
 			continue;
 		}
+		if (r.tipo_operacion && r.tipo_operacion !== 'venta') continue;
 		if (!(Number(r.precio_unitario) > 0)) continue;
 		d.cantidad += Number(r.cantidad) || 0;
 		d.monto += Number(r.precio_unitario) * (Number(r.cantidad) || 0);
@@ -313,6 +316,7 @@ export async function compararClientesPorSku(idVendedor, sku) {
 			c.ncConteo += 1;
 			continue;
 		}
+		if (r.tipo_operacion && r.tipo_operacion !== 'venta') continue;
 		if (!(Number(r.precio_unitario) > 0)) continue;
 		c.ventas.push({
 			precio: Number(r.precio_unitario),
@@ -351,6 +355,7 @@ export async function compararClientesPorSku(idVendedor, sku) {
 
 	return { error: null, data };
 }
+
 
 
 
