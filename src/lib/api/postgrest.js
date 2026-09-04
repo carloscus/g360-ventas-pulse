@@ -11,7 +11,7 @@ const HEADERS = {
  * filters: array de strings ya formateados, ej: ['id_cliente=eq.00056101', 'fecha_orig=gte.2025-01-01']
  * options: { select, order, limit }
  */
-export async function postgrestGet(view, { filters = [], select = '*', order = '', limit = 0 } = {}) {
+export async function postgrestGet(view, { filters = [], select = '*', order = '', limit = 0, offset = 0 } = {}) {
 	if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.startsWith('PEGAR_')) {
 		throw new Error(
 			'Supabase no configurado: copia .env.example a .env con VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY y reinicia el dev server'
@@ -22,6 +22,7 @@ export async function postgrestGet(view, { filters = [], select = '*', order = '
 	for (const f of filters) params.append(f.split('=')[0], f.split('=').slice(1).join('='));
 	if (order) params.set('order', order);
 	if (limit > 0) params.set('limit', String(limit));
+	if (offset > 0) params.set('offset', String(offset));
 
 	const url = `${SUPABASE_URL}/rest/v1/${view}?${params.toString()}`;
 
@@ -37,4 +38,5 @@ export function eq(column, value) { return `${column}=eq.${value}`; }
 export function inList(column, values) { return `${column}=in.(${values.join(',')})`; }
 export function gte(column, value) { return `${column}=gte.${value}`; }
 export function lte(column, value) { return `${column}=lte.${value}`; }
+
 

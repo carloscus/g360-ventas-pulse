@@ -1,7 +1,7 @@
 const SESSION_TTL_MS = 5 * 60 * 1000;
 const PERSISTENT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const MEMORY = new Map();
-const PREFIX = 'cockpit-cache:';
+const PREFIX = 'cockpit-cache-v2:'; // v2: invalida entradas con paginacion rota (offset ignorado)
 
 function now() { return Date.now(); }
 
@@ -118,3 +118,4 @@ export function clearCache() {
 		/* storage no disponible */
 	}
 }
+

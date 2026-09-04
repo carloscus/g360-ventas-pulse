@@ -304,7 +304,8 @@
 					</div>
 				{:else if preciosError}
 					<div class="glass-card p-4 mt-2 text-sm text-center">
-						<p class="text-danger-600 dark:text-danger-400 font-semibold mb-2">No se pudo analizar el historial</p>
+						<p class="text-danger-600 dark:text-danger-400 font-semibold mb-1">No se pudo analizar el historial</p>
+						<p class="text-[10px] text-g360-muted dark:text-g360-mutedDark mb-2 break-all">{preciosError.message || preciosError}</p>
 						<button class="btn-secondary" on:click={cargarPrecios}>Reintentar</button>
 					</div>
 				{:else if analisis.length === 0}
@@ -506,6 +507,7 @@
 
 
 <ProductSearchModal bind:open={searchOpen} />
+
 
 
 
