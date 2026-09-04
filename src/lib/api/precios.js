@@ -1,4 +1,4 @@
-import { postgrestGet, eq } from './postgrest.js';
+import { postgrestGet, eq, gte, lte } from './postgrest.js';
 import { cachedGet } from './cache.js';
 
 const UMBRAL_ANOMALIA = -0.15;
@@ -375,6 +375,7 @@ export async function compararClientesPorSku(idVendedor, sku) {
 
 	return { error: null, data };
 }
+
 
 
 
