@@ -121,20 +121,22 @@ export function detectarAnomalias(rows, topSkus = null) {
 		if (f.precios.length < MIN_VENTAS) continue;
 		const prom = f.precios.reduce((a, b) => a + b.precio, 0) / f.precios.length;
 		if (prom <= 0) continue;
-		for (const v of f.precios) {
-			const delta = v.precio / prom - 1;
-			if (delta <= UMBRAL_ANOMALIA) {
-				anomalias.push({
-					sku: f.sku,
-					nom: f.nom,
-					promedio: prom,
-					precio: v.precio,
-					delta_pct: Math.round(delta * 100),
-					cantidad: v.cantidad,
-					fecha: v.fecha
-				});
-			}
-		}
+		const malas = f.precios.filter((v) => v.precio / prom - 1 <= UMBRAL_ANOMALIA);
+		if (malas.length === 0) continue;
+		const fechas = malas.map((v) => v.fecha).sort();
+		const cants = malas.map((v) => v.cantidad);
+		anomalias.push({
+			sku: f.sku,
+			nom: f.nom,
+			promedio: prom,
+			precio: Math.min(...cants.length ? malas.map((v) => v.precio) : [0]),
+			delta_pct: Math.round((Math.min(...malas.map((v) => v.precio)) / prom - 1) * 100),
+			n: malas.length,
+			cantMin: Math.min(...cants),
+			cantMax: Math.max(...cants),
+			fechaDesde: fechas[0],
+			fechaHasta: fechas[fechas.length - 1]
+		});
 	}
 	return anomalias.sort((a, b) => a.delta_pct - b.delta_pct).slice(0, 5);
 }
@@ -151,7 +153,7 @@ export function historialDeSku(rows, sku) {
 		const k = r.fecha_orig || 's/f';
 		let d = porDia.get(k);
 		if (!d) {
-			d = { fecha: r.fecha_orig, cantidad: 0, monto: 0, precios: new Set(), facturas: 0, docs: [], ncSoles: 0, ncConteo: 0 };
+			d = { fecha: r.fecha_orig, cantidad: 0, monto: 0, precios: new Set(), lineas: 0, docs: new Set(), ncSoles: 0, ncConteo: 0 };
 			porDia.set(k, d);
 		}
 		if (r.tipo_operacion === 'ajuste_valor') {
@@ -163,20 +165,21 @@ export function historialDeSku(rows, sku) {
 		d.cantidad += Number(r.cantidad) || 0;
 		d.monto += Number(r.precio_unitario) * (Number(r.cantidad) || 0);
 		d.precios.add(Number(r.precio_unitario));
-		d.facturas += 1;
-		const doc = [r.serie_doc, r.nro_doc].filter(Boolean).join('-');
-		if (doc && d.docs.length < 3) d.docs.push(doc);
+		d.lineas += 1;
+		const doc = [r.serie_doc, r.nro_doc].filter(Boolean).join('-') || String(r.folio_unico || '');
+		if (doc) d.docs.add(doc);
 	}
 	return [...porDia.values()]
-		.filter((d) => d.facturas > 0)
+		.filter((d) => d.lineas > 0)
 		.map((d) => ({
 			fecha: d.fecha,
 			cantidad: d.cantidad,
 			precio: d.monto / d.cantidad,
 			precioMin: Math.min(...d.precios),
 			precioMax: Math.max(...d.precios),
-			facturas: d.facturas,
-			docs: d.docs,
+			docs: [...d.docs].slice(0, 3),
+			nDocs: d.docs.size || d.lineas,
+			lineas: d.lineas,
 			ncSoles: d.ncSoles,
 			ncConteo: d.ncConteo
 		}))
@@ -234,6 +237,9 @@ export async function compararClientesPorSku(idVendedor, sku) {
 			folio: [r.serie_doc, r.nro_doc].filter(Boolean).join('-') || String(r.folio_unico || '')
 		});
 		c.undTotal += Number(r.cantidad) || 0;
+		c.docs = c.docs || new Set();
+		const doc = [r.serie_doc, r.nro_doc].filter(Boolean).join('-');
+		if (doc) c.docs.add(doc);
 	}
 
 	const data = [...porCliente.values()]
@@ -252,6 +258,7 @@ export async function compararClientesPorSku(idVendedor, sku) {
 				prom: c.ventas.reduce((a, v) => a + v.precio, 0) / c.ventas.length,
 				undTotal: c.undTotal,
 				nVentas: c.ventas.length,
+				nDocs: (c.docs && c.docs.size) || c.ventas.length,
 				ncSoles: c.ncSoles,
 				ncConteo: c.ncConteo
 			};
@@ -260,6 +267,8 @@ export async function compararClientesPorSku(idVendedor, sku) {
 
 	return { error: null, data };
 }
+
+
 
 
 

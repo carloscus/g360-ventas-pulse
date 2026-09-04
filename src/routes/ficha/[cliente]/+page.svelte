@@ -297,11 +297,11 @@
 					{#if anomalias.length > 0}
 						<div class="glass-card p-3 mt-2 mb-2">
 							<p class="text-xs font-semibold text-warning-700 dark:text-warning-400 mb-1">
-								{anomalias.length} precio(s) por debajo del promedio (argumento de negociacion):
+								{anomalias.length} producto(s) con ventas bajo el promedio (argumento de negociacion):
 							</p>
-							{#each anomalias as a}
+							{#each anomalias as a (a.sku)}
 								<p class="text-xs text-g360-muted dark:text-g360-mutedDark">
-									{String(a.nom).slice(0, 34)} - S/ {a.precio.toFixed(2)} (prom S/ {a.promedio.toFixed(2)}, {a.delta_pct}%) - {fmtNum(a.cantidad)} und el {a.fecha}
+									{String(a.nom).slice(0, 34)} - {a.n} ventas a S/ {a.precio.toFixed(2)} vs prom S/ {a.promedio.toFixed(2)} ({a.delta_pct}%) · {fmtNum(a.cantMin)}-{fmtNum(a.cantMax)} und · {a.fechaDesde} a {a.fechaHasta}
 								</p>
 							{/each}
 						</div>
@@ -330,7 +330,7 @@
 									<div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-[11px] text-g360-muted dark:text-g360-mutedDark">
 										{#each a.anios as y, i}
 											<span>
-												<b class="text-g360-text dark:text-g360-textDark">{y.anio}</b> {y.prom.toFixed(2)} ({y.min.toFixed(2)}-{y.max.toFixed(2)})
+												<b class="text-g360-text dark:text-g360-textDark">{y.anio}</b> {y.prom.toFixed(2)} {#if y.min !== y.max} ({y.min.toFixed(2)}-{y.max.toFixed(2)}){/if}
 											</span>
 											{#if a.variaciones && a.variaciones[i] != null}
 												{@const v = a.variaciones[i]}
@@ -358,7 +358,7 @@
 															<span class="shrink-0 font-semibold">S/{cp.ultimo.precio.toFixed(2)}{#if cp.ncConteo > 0} <span class="text-warning-700 dark:text-warning-400 text-[10px]">NCx{cp.ncConteo}</span>{/if}</span>
 														</div>
 														<div class="flex justify-between gap-2 opacity-60">
-															<span>ult: {cp.ultimo.fecha} x{fmtNum(cp.ultimo.cantidad)}{cp.ultimo.folio ? ` F.${cp.ultimo.folio}` : ''} - rango {cp.min.precio.toFixed(2)} ({fmtNum(cp.min.cantidad)}) a {cp.max.precio.toFixed(2)} ({fmtNum(cp.max.cantidad)})</span>
+															<span>ult: {cp.ultimo.fecha} x{fmtNum(cp.ultimo.cantidad)}{cp.ultimo.folio ? ` F.${cp.ultimo.folio}` : ""} {cp.min.precio !== cp.max.precio ? `- rango ${cp.min.precio.toFixed(2)} a ${cp.max.precio.toFixed(2)}` : `- ${cp.nDocs} doc, ${cp.nVentas} lineas`}</span>
 														</div>
 													</div>
 												{/each}
@@ -373,7 +373,7 @@
 										{#each hist.slice(0, 15) as h}
 											<div class="text-[11px] py-0.5">
 												<div class="flex justify-between gap-2">
-													<span>{h.fecha}{#if h.facturas > 1} <span class="opacity-60">({h.facturas} fact.)</span>{/if}</span>
+													<span>{h.fecha}{#if h.nDocs > 1} <span class="opacity-60">({h.nDocs} ${h.nDocs === 1 ? 'doc' : 'docs'})</span>{:else if h.lineas > 1} <span class="opacity-60">({h.lineas} ${h.lineas === 1 ? 'linea' : 'lineas'}, 1 doc)</span>{/if}</span>
 													<span class="flex gap-3">
 														<span class="{h.cantidad >= 500 ? 'text-warning-700 dark:text-warning-400 font-semibold' : ''}">
 															{fmtNum(h.cantidad)} und
@@ -384,7 +384,7 @@
 													</span>
 												</div>
 												{#if h.docs && h.docs.length > 0}
-													<div class="opacity-60 text-[10px]">F. {h.docs.join(', ')}{h.docs.length >= 3 && h.facturas > 3 ? ' +' + (h.facturas - 3) : ''}</div>
+													<div class="opacity-60 text-[10px]">F. {h.docs.join(", ")}{h.nDocs > h.docs.length ? ` +${h.nDocs - h.docs.length}` : ""}</div>
 												{/if}
 												{#if h.ncConteo > 0}
 													<div class="text-warning-700 dark:text-warning-400 text-[10px] font-semibold">NC descuento: {h.ncConteo} por {fmtSoles(h.ncSoles)}</div>
@@ -488,6 +488,8 @@
 
 
 <ProductSearchModal bind:open={searchOpen} />
+
+
 
 
 

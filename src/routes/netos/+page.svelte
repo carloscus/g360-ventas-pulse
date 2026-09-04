@@ -21,6 +21,7 @@
 	let periodos = null;
 	let abiertosCli = new Set();
 	let orden = { clave: 'a', dir: -1 };
+	let incompleto = null;
 	let abiertosLin = new Set();
 
 	$: vendedor = $vendedorActivo;
@@ -59,6 +60,7 @@
 		} else {
 			clientes = res.clientes;
 			periodos = res.periodos;
+			incompleto = res.incompleto;
 			offline = res.source !== 'network';
 			abiertosCli = new Set();
 			abiertosLin = new Set();
@@ -142,6 +144,10 @@
 		</p>
 	{/if}
 
+	{#if incompleto && (incompleto.b || incompleto.c)}
+		<div class="badge badge-warning mb-3">Comparativo B/C incompleto: reintenta con un rango mas corto</div>
+	{/if}
+
 	{#if offline && !cargando && !error}
 		<div class="badge badge-warning mb-3">Datos offline (cache)</div>
 	{/if}
@@ -221,4 +227,5 @@
 </div>
 
 <G360Signature version="1.0.0" />
+
 

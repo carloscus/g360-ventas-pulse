@@ -11,29 +11,68 @@ export function desplazarAnio(fechaIso, anios) {
 	return d.toISOString().slice(0, 10);
 }
 
-async function fetchPeriodo(idVendedor, desde, hasta) {
+async function fetchSlice(idVendedor, desde, hasta) {
 	const params = {
 		filters: [eq('id_vendedor', idVendedor), gte('fecha_orig', desde), lte('fecha_orig', hasta)],
 		select: SELECT,
-		order: 'folio_unico.asc',
+		order: 'fecha_orig.asc,folio_unico.asc',
 		limit: PAGE_SIZE
 	};
 	let offset = 0;
-	const todas = [];
+	const filas = [];
 	let source = 'network';
+	let error = null;
 	while (true) {
 		const res = await cachedGet('ventas-netos', { ...params, offset }, () =>
 			postgrestGet('ventas', { ...params, offset })
 		);
-		if (res.error) return { error: res.error, data: [] };
+		if (res.error) {
+			error = res.error;
+			break;
+		}
 		source = res.source;
 		const page = res.data || [];
-		todas.push(...page);
+		filas.push(...page);
 		if (page.length < PAGE_SIZE) break;
 		offset += PAGE_SIZE;
 		if (offset > 20000) break;
 	}
-	return { error: null, data: todas, source };
+	return { filas, source, error };
+}
+
+/** Divide [desde, hasta] en rebanadas mensuales (evita ordenar rangos largos). */
+export function rebanadasMes(desde, hasta) {
+	const out = [];
+	let cur = new Date(`${desde}T00:00:00`);
+	const fin = new Date(`${hasta}T00:00:00`);
+	while (cur <= fin) {
+		const siguiente = new Date(cur.getFullYear(), cur.getMonth() + 1, 1);
+		const finSlice = new Date(Math.min(siguiente.getTime() - 86400000, fin.getTime()));
+		out.push([cur.toISOString().slice(0, 10), finSlice.toISOString().slice(0, 10)]);
+		cur = siguiente;
+	}
+	return out;
+}
+
+async function fetchPeriodo(idVendedor, desde, hasta) {
+	const slices = rebanadasMes(desde, hasta);
+	const resultados = await Promise.all(slices.map(([s, e]) => fetchSlice(idVendedor, s, e)));
+	const todas = [];
+	let source = 'network';
+	let error = null;
+	let incompleto = false;
+	for (const r of resultados) {
+		if (r.error) {
+			incompleto = true;
+			error = error || r.error;
+			continue;
+		}
+		source = r.source;
+		todas.push(...r.filas);
+	}
+	// Si el periodo completo fallo pero hay rebanadas ok, seguimos parciales
+	if (todas.length === 0 && error) return { error, data: [], incompleto: true };
+	return { error: null, data: todas, source, incompleto };
 }
 
 function variacion(a, b) {
@@ -115,6 +154,13 @@ export async function cargarNetos(idVendedor, desde, hasta) {
 		error: null,
 		clientes,
 		source: fuente,
+		incompleto: {
+			a: ra.value.incompleto === true,
+			b: rb.status === 'fulfilled' ? rb.value.incompleto === true : true,
+			c: rc.status === 'fulfilled' ? rc.value.incompleto === true : true
+		},
 		periodos: { a: { desde, hasta }, b: { desde: desdeB, hasta: hastaB }, c: { desde: desdeC, hasta: hastaC } }
 	};
 }
+
+
