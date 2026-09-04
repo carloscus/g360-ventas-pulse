@@ -320,7 +320,7 @@
 							</p>
 							{#each anomalias as a (a.nom)}
 								<p class="text-xs text-g360-muted dark:text-g360-mutedDark">
-									<b class="text-g360-text dark:text-g360-textDark">{String(a.nom).slice(0, 34)}</b> · S/ {a.precio.toFixed(2)} vs prom S/ {a.promedio.toFixed(2)} (<b class="text-warning-700 dark:text-warning-400">{a.delta_pct}%</b>) · {a.n} líneas en {a.nDocs} {a.nDocs > 1 ? 'docs' : 'doc'} · {a.cantMin === a.cantMax ? fmtNum(a.cantMin) + ' und c/u' : fmtNum(a.cantMin) + '-' + fmtNum(a.cantMax) + ' und'} · {a.fechaDesde === a.fechaHasta ? a.fechaDesde : a.fechaDesde + ' a ' + a.fechaHasta}
+									<b class="text-g360-text dark:text-g360-textDark">{a.nom}</b> · S/ {a.precio.toFixed(2)} vs prom S/ {a.promedio.toFixed(2)} (<b class="text-warning-700 dark:text-warning-400">{a.delta_pct}%</b>) · {a.n} {a.n > 1 ? 'líneas' : 'línea'} en {a.nDocs} {a.nDocs > 1 ? 'docs' : 'doc'} · {a.cantMin === a.cantMax ? fmtNum(a.cantMin) + ' und c/u' : fmtNum(a.cantMin) + '-' + fmtNum(a.cantMax) + ' und'} · {a.fechaDesde === a.fechaHasta ? a.fechaDesde : a.fechaDesde + ' a ' + a.fechaHasta}
 								</p>
 							{/each}
 						</div>
@@ -340,8 +340,8 @@
 										</div>
 										<div class="text-right shrink-0">
 											{#if a.variacion !== null}
-												<span class="badge {a.variacion >= 0 ? 'badge-success' : 'badge-danger'} px-2 py-0 text-[10px]">
-													{a.variacion >= 0 ? '+' : ''}{(a.variacion * 100).toFixed(1)}%
+													<span class="badge {(a.variacion >= 0.005 ? 'badge-success' : a.variacion <= -0.005 ? 'badge-danger' : 'badge-warning')} px-2 py-0 text-[10px]">
+														{a.variacion >= 0.005 ? '+' : ''}{(a.variacion * 100).toFixed(1)}%
 												</span>
 											{/if}
 										</div>
