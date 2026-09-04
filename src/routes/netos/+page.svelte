@@ -20,6 +20,7 @@
 	let clientes = [];
 	let periodos = null;
 	let abiertosCli = new Set();
+	let orden = { clave: 'a', dir: -1 };
 	let abiertosLin = new Set();
 
 	$: vendedor = $vendedorActivo;
@@ -71,6 +72,15 @@
 		hasta = hastaInput;
 		cargar();
 	}
+
+	function setOrden(clave) {
+		orden = proximoOrden(orden, clave);
+	}
+
+	$: clientesVistos = ordenarPor(clientes, orden).map((c) => ({
+		...c,
+		lineas: ordenarPor(c.lineas, orden).map((l) => ({ ...l, skus: ordenarPor(l.skus, orden) }))
+	}));
 
 	function toggleCli(id) {
 		const s = new Set(abiertosCli);
@@ -159,14 +169,14 @@
 				<thead>
 					<tr class="text-left text-[10px] uppercase tracking-wide text-g360-muted dark:text-g360-mutedDark border-b border-g360-surface/60 dark:border-white/10">
 						<th class="py-2.5 px-3">Cliente / Línea / SKU</th>
-						<th class="py-2.5 px-3 text-right">A (rango)</th>
-						<th class="py-2.5 px-3 text-right">B (−1a)</th>
-						<th class="py-2.5 px-3 text-right">C (−2a)</th>
-						<th class="py-2.5 px-3 text-right">Δ A/B</th>
+						<th class="py-2.5 px-3 text-right cursor-pointer select-none" on:click={() => setOrden('a')} title="Ordenar por A">A (rango) {indicador(orden, 'a')}</th>
+						<th class="py-2.5 px-3 text-right cursor-pointer select-none" on:click={() => setOrden('b')} title="Ordenar por B">B (−1a) {indicador(orden, 'b')}</th>
+						<th class="py-2.5 px-3 text-right cursor-pointer select-none" on:click={() => setOrden('c')} title="Ordenar por C">C (−2a) {indicador(orden, 'c')}</th>
+						<th class="py-2.5 px-3 text-right cursor-pointer select-none" on:click={() => setOrden('variacion')} title="Ordenar por variacion">Δ A/B {indicador(orden, 'variacion')}</th>
 					</tr>
 				</thead>
 				<tbody>
-					{#each clientes as c (c.id_cliente)}
+					{#each clientesVistos as c (c.id_cliente)}
 						<tr class="border-b border-g360-surface/40 dark:border-white/5 cursor-pointer hover:bg-primary-50/40 dark:hover:bg-white/5" on:click={() => toggleCli(c.id_cliente)}>
 							<td class="py-2.5 px-3 font-semibold text-g360-text dark:text-g360-textDark">
 								<span class="opacity-50 mr-1">{abiertosCli.has(c.id_cliente) ? '▾' : '▸'}</span>{c.nom_cliente}
@@ -211,3 +221,4 @@
 </div>
 
 <G360Signature version="1.0.0" />
+

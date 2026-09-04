@@ -44,6 +44,8 @@
 	let comparativa = null;
 	let comparativaSku = null;
 	let comparativaCargando = false;
+	let orden = { clave: 'sku', dir: 1 };
+	let limite = 50;
 
 	$: vendedor = $vendedorActivo;
 
@@ -63,6 +65,7 @@
 		const res = await cargarFicha(clienteId, desde, hasta);
 		error = res.error;
 		offline = res.source !== 'network';
+		limite = 50;
 		filas = res.filas || [];
 		rows = res.rows || [];
 		setClienteContexto(clienteId, rows[0]?.nom_cliente || '');
@@ -112,6 +115,12 @@
 		comparativa = r.data || [];
 		comparativaCargando = false;
 	}
+
+	function setOrden(clave) {
+		orden = proximoOrden(orden, clave);
+	}
+
+	$: filasVistas = ordenarPor(filas, orden).slice(0, limite);
 
 	function toggleDetalle(sku) {
 		skuDetalle = skuDetalle === sku ? null : sku;
@@ -400,22 +409,22 @@
 			<table class="w-full text-sm min-w-[860px] tabular-nums">
 				<thead>
 					<tr class="text-left text-xs uppercase tracking-wide text-g360-muted dark:text-g360-mutedDark border-b border-g360-surface/60 dark:border-white/10">
-						<th class="py-3 px-3">SKU</th>
+						<th class="py-3 px-3 cursor-pointer select-none" on:click={() => setOrden('sku')}>SKU {indicador(orden, 'sku')}</th>
 						<th class="py-3 px-3">Artículo</th>
-						<th class="py-3 px-3 text-right">Und</th>
+						<th class="py-3 px-3 text-right cursor-pointer select-none" on:click={() => setOrden('vendido_und')}>Und {indicador(orden, 'vendido_und')}</th>
 						<th class="py-3 px-3 text-right">Cajas</th>
-						<th class="py-3 px-3 text-right">P. último</th>
+						<th class="py-3 px-3 text-right cursor-pointer select-none" on:click={() => setOrden('precio_ultimo')}>P. último {indicador(orden, 'precio_ultimo')}</th>
 						<th class="py-3 px-3 text-right">P. anterior</th>
 						<th class="py-3 px-3 text-right">P. ant. 2</th>
-						<th class="py-3 px-3 text-right">NC S/</th>
+						<th class="py-3 px-3 text-right cursor-pointer select-none" on:click={() => setOrden('nc_soles')}>NC S/ {indicador(orden, 'nc_soles')}</th>
 						<th class="py-3 px-3 text-right">NC #</th>
-						<th class="py-3 px-3 text-right">Dev. und</th>
+						<th class="py-3 px-3 text-right cursor-pointer select-none" on:click={() => setOrden('devuelto_und')}>Dev. und {indicador(orden, 'devuelto_und')}</th>
 						<th class="py-3 px-3 text-right">Stock</th>
-						<th class="py-3 px-3 text-right">Saldo S/</th>
+						<th class="py-3 px-3 text-right cursor-pointer select-none" on:click={() => setOrden('saldo_soles')}>Saldo S/ {indicador(orden, 'saldo_soles')}</th>
 					</tr>
 				</thead>
 				<tbody>
-					{#each filas as f (f.sku)}
+					{#each filasVistas as f (f.sku)}
 						<tr class="border-b border-g360-surface/40 dark:border-white/5 hover:bg-primary-50/40 dark:hover:bg-white/5 cursor-pointer" on:click={() => toggleDetalle(f.sku)}>
 							<td class="py-2.5 px-3 font-mono text-xs">{f.sku}</td>
 							<td class="py-2.5 px-3 text-g360-text dark:text-g360-textDark">{f.nom_articulo}</td>
@@ -455,6 +464,11 @@
 				</tbody>
 			</table>
 		</div>
+		{#if filas.length > limite}
+			<button class="btn-secondary w-full mt-3" on:click={() => (limite = filas.length)}>
+				Mostrar todos los {filas.length} SKUs (viendo {limite})
+			</button>
+		{/if}
 		<p class="text-xs text-g360-muted dark:text-g360-mutedDark mt-3">
 			{filas.length} SKUs · Cajas calculadas con un_bx del catálogo ({fmtFecha(desde)} → {fmtFecha(hasta)})
 		</p>
@@ -474,6 +488,7 @@
 
 
 <ProductSearchModal bind:open={searchOpen} />
+
 
 
 

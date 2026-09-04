@@ -20,6 +20,7 @@
 	let periodoHasta = '';
 	let periodoAjustado = false;
 	let nomVendedor = '';
+	let orden = { clave: 'ultima', dir: -1 };
 
 	$: vendedor = $vendedorActivo;
 
@@ -48,6 +49,12 @@
 		}
 		cargando = false;
 	}
+
+	function setOrden(clave) {
+		orden = proximoOrden(orden, clave);
+	}
+
+	$: clientesVistos = ordenarPor(clientes, orden);
 
 	function abrirFicha(cliente) {
 		goto(`${base}/ficha/${encodeURIComponent(cliente.id_cliente)}`);
@@ -99,6 +106,11 @@
 		<div class="badge badge-warning mb-4">Tiempo de respuesta agotado: mostrando ultimos 180 dias</div>
 	{/if}
 
+	<div class="flex gap-2 mb-3">
+		<button class="px-3 py-1.5 rounded-full text-xs font-semibold min-h-[36px] {orden.clave === 'ultima' ? 'bg-primary-600 text-white' : 'bg-g360-bg dark:bg-white/10 text-g360-muted dark:text-g360-mutedDark'}" on:click={() => setOrden('ultima')}>Última {indicador(orden, 'ultima')}</button>
+		<button class="px-3 py-1.5 rounded-full text-xs font-semibold min-h-[36px] {orden.clave === 'monto' ? 'bg-primary-600 text-white' : 'bg-g360-bg dark:bg-white/10 text-g360-muted dark:text-g360-mutedDark'}" on:click={() => setOrden('monto')}>Monto {indicador(orden, 'monto')}</button>
+		<button class="px-3 py-1.5 rounded-full text-xs font-semibold min-h-[36px] {orden.clave === 'nom_cliente' ? 'bg-primary-600 text-white' : 'bg-g360-bg dark:bg-white/10 text-g360-muted dark:text-g360-mutedDark'}" on:click={() => setOrden('nom_cliente')}>Nombre {indicador(orden, 'nom_cliente')}</button>
+	</div>
 	{#if resultado && resultado.source && resultado.source !== 'network'}
 		<div class="badge badge-warning mb-4">Datos offline (cache)</div>
 	{/if}
@@ -122,7 +134,7 @@
 		</div>
 	{:else}
 		<ul class="space-y-2">
-			{#each clientes as c (c.id_cliente)}
+			{#each clientesVistos as c (c.id_cliente)}
 				<li>
 					<button
 						class="glass-card w-full text-left p-4 flex items-center justify-between gap-3 active:scale-[0.99] transition-transform"
@@ -147,6 +159,7 @@
 </div>
 
 <G360Signature version="1.0.0" />
+
 
 
 

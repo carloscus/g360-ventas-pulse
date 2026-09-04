@@ -11,3 +11,9 @@
 ## 3. Verificacion
 
 - [x] 3.1 `npm run build` sin errores; flujo dashboard -> netos con datos reales
+
+## Mejoras de revision (post-campo)
+
+- [x] 5.1 Sort por cabecera en netos (A/B/C/Delta, aplica a los 3 niveles), chips de orden en clientes y cabeceras ordenables en ficha
+- [x] 5.2 Paginado incremental en la tabla de ficha: 50 filas + 'Mostrar todos' para carteras grandes
+
