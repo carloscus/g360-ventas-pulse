@@ -18,6 +18,7 @@
 	let cargando = true;
 	let error = null;
 	let offline = false;
+	let soloRuta = false;
 	let clientes = [];
 	let nomVendedor = '';
 	let stockMapa = null;
@@ -27,6 +28,7 @@
 
 	$: vendedor = $vendedorActivo;
 	$: rutaIds = $rutaDia;
+	$: clientesVistos = soloRuta ? clientes.filter((c) => rutaIds.includes(c.id_cliente)) : clientes;
 
 	async function cargar() {
 		if (!vendedor) return;
@@ -144,11 +146,12 @@
 				<p class="text-xs text-g360-muted dark:text-g360-mutedDark">Valor estimado de la ruta</p>
 			</div>
 			<p class="text-lg font-bold text-primary-700 dark:text-primary-400">{fmtSoles(totalRuta)}</p>
+			<button class="btn-ghost text-xs shrink-0" on:click={() => (soloRuta = !soloRuta)}>${soloRuta ? 'Ver todas' : 'Ver solo ruta'}</button>
 		</div>
 	{/if}
 
 	{#if offline && !cargando && !error}
-		<div class="badge badge-warning mb-4">Datos offline (cache)</div>
+		<div class="badge badge-warning mb-4">Datos desde cache (sin actualizar)</div>
 	{/if}
 
 	{#if cargando}
@@ -161,14 +164,14 @@
 			<p class="text-xs text-g360-muted dark:text-g360-mutedDark mb-4">{error.message || error}</p>
 			<button class="btn-primary" on:click={cargar}>Reintentar</button>
 		</div>
-	{:else if clientes.length === 0}
+	{:else if clientesVistos.length === 0}
 		<div class="glass-card p-8 text-center text-g360-muted dark:text-g360-mutedDark">
 			<p class="font-semibold mb-1">Sin oportunidades por ahora</p>
 			<p class="text-xs">Ningún SKU de tus clientes activos supera su cadencia de recompra. Vuelve mañana.</p>
 		</div>
 	{:else}
 		<ul class="space-y-3">
-			{#each clientes as c (c.id_cliente)}
+			{#each clientesVistos as c (c.id_cliente)}
 				<li class="glass-card p-4">
 					<div class="flex items-start justify-between gap-3 mb-2">
 						<button class="text-left min-w-0" on:click={() => abrirFicha(c.id_cliente)}>
@@ -215,6 +218,8 @@
 </div>
 
 <G360Signature version="1.0.0" />
+
+
 
 
 
