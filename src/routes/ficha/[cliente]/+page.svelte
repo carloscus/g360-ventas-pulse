@@ -44,6 +44,9 @@
 	let historialRows = [];
 	let skuExpandido = null;
 	let skuDetalle = null;
+	let modas = new Map();
+	const anioActual = new Date().getFullYear();
+	const anioPrevio = anioActual - 1;
 	let comparativa = null;
 	let comparativaSku = null;
 	let comparativaCargando = false;
@@ -69,6 +72,8 @@
 		error = res.error;
 		offline = res.source !== 'network';
 		limite = 50;
+		modas = new Map();
+		cargarModas();
 		filas = res.filas || [];
 		rows = res.rows || [];
 		setClienteContexto(clienteId, rows[0]?.nom_cliente || '');
@@ -134,6 +139,49 @@
 
 	function toggleDetalle(sku) {
 		skuDetalle = skuDetalle === sku ? null : sku;
+	}
+
+	function modaCol(sku, key) {
+		const m = modas.get(sku);
+		return m && m[key] !== null && m[key] !== undefined ? fmtSoles(m[key]) : '-';
+	}
+
+	function modaDe(m) {
+		if (!m) return null;
+		let best = null;
+		let n = 0;
+		for (const [k, c] of m) {
+			if (c > n) { best = Number(k); n = c; }
+		}
+		return best;
+	}
+
+	async function cargarModas() {
+		try {
+			const hist = await cargarHistorialPrecios(clienteId);
+			const conteo = new Map();
+			for (const r of hist.data || []) {
+				if (r.tipo_operacion && r.tipo_operacion !== 'venta') continue;
+				const p = Number(r.precio_unitario);
+				if (!(p > 0)) continue;
+				const anio = Number(String(r.fecha_orig || '').slice(0, 4));
+				if (anio !== anioActual && anio !== anioPrevio) continue;
+				const k = String(r.id_articulo) + '|' + anio;
+				let m = conteo.get(k);
+				if (!m) { m = new Map(); conteo.set(k, m); }
+				const pk = p.toFixed(2);
+				m.set(pk, (m.get(pk) || 0) + 1);
+			}
+			const nuevo = new Map();
+			for (const f of filas) {
+				const a = modaDe(conteo.get(f.sku + '|' + anioActual));
+				const b = modaDe(conteo.get(f.sku + '|' + anioPrevio));
+				if (a !== null || b !== null) nuevo.set(f.sku, { a, b });
+			}
+			modas = nuevo;
+		} catch (e) {
+			console.warn('[ficha] modas s/d:', e?.message);
+		}
 	}
 
 	function toggleHistorial(sku) {
@@ -433,8 +481,8 @@
 						<th class="py-3 px-3 text-right cursor-pointer select-none" on:click={() => setOrden('vendido_und')}>Und {indicador(orden, 'vendido_und')}</th>
 						<th class="py-3 px-3 text-right">Cajas</th>
 						<th class="py-3 px-3 text-right cursor-pointer select-none" on:click={() => setOrden('precio_ultimo')}>P. último {indicador(orden, 'precio_ultimo')}</th>
-						<th class="py-3 px-3 text-right">P. anterior</th>
-						<th class="py-3 px-3 text-right">P. ant. 2</th>
+						<th class="py-3 px-3 text-right" title="precio mas repetido en el anio">Moda {anioActual}</th>
+						<th class="py-3 px-3 text-right" title="precio mas repetido en el anio">Moda {anioPrevio}</th>
 						<th class="py-3 px-3 text-right cursor-pointer select-none" on:click={() => setOrden('nc_soles')}>NC S/ {indicador(orden, 'nc_soles')}</th>
 						<th class="py-3 px-3 text-right">NC #</th>
 						<th class="py-3 px-3 text-right cursor-pointer select-none" on:click={() => setOrden('devuelto_und')}>Dev. und {indicador(orden, 'devuelto_und')}</th>
@@ -452,8 +500,8 @@
 								{f.cajas === null ? '—' : fmtNum(Math.round(f.cajas * 100) / 100)}
 							</td>
 							<td class="py-2.5 px-3 text-right font-semibold">{f.precio_ultimo === null ? '—' : fmtSoles(f.precio_ultimo)}</td>
-							<td class="py-2.5 px-3 text-right">{f.precio_anterior === null ? '—' : fmtSoles(f.precio_anterior)}</td>
-							<td class="py-2.5 px-3 text-right text-g360-muted dark:text-g360-mutedDark">{f.precio_anterior2 === null ? '—' : fmtSoles(f.precio_anterior2)}</td>
+							<td class="py-2.5 px-3 text-right">{modaCol(f.sku, 'a')}</td>
+							<td class="py-2.5 px-3 text-right text-g360-muted dark:text-g360-mutedDark">{modaCol(f.sku, 'b')}</td>
 							<td class="py-2.5 px-3 text-right {f.nc_soles > 0 ? 'text-warning-700 dark:text-warning-400 font-semibold' : ''}">
 								{f.nc_soles > 0 ? fmtSoles(f.nc_soles) : '—'}
 							</td>
@@ -507,6 +555,9 @@
 
 
 <ProductSearchModal bind:open={searchOpen} />
+
+
+
 
 
 
