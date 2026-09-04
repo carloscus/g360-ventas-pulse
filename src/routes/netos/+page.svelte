@@ -22,17 +22,29 @@
 	let periodos = null;
 	let abiertosCli = new Set();
 	let orden = { clave: 'a', dir: -1 };
+	let preset = 'mes';
+	let rangoAbierto = false;
 	let incompleto = null;
 	let abiertosLin = new Set();
 
 	$: vendedor = $vendedorActivo;
 
-	function presetMes() {
+	function rangoPreset(p) {
 		const hoy = new Date();
-		hasta = fechaISO(hoy);
-		desde = fechaISO(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
+		let d;
+		if (p === 'mes') d = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+		else if (p === '3m') { d = new Date(hoy); d.setMonth(hoy.getMonth() - 3); }
+		else if (p === '6m') { d = new Date(hoy); d.setMonth(hoy.getMonth() - 6); }
+		else d = new Date(hoy.getFullYear(), 0, 1);
+		return [fechaISO(d), fechaISO(hoy)];
+	}
+
+	function elegirPreset(p) {
+		preset = p;
+		[desde, hasta] = rangoPreset(p);
 		desdeInput = desde;
 		hastaInput = hasta;
+		cargar();
 	}
 
 	function fmt0(n) {
@@ -73,6 +85,7 @@
 		if (!desdeInput || !hastaInput || desdeInput > hastaInput) return;
 		desde = desdeInput;
 		hasta = hastaInput;
+		preset = 'custom';
 		cargar();
 	}
 
@@ -103,7 +116,9 @@
 			goto(base || '/');
 			return;
 		}
-		presetMes();
+		[desde, hasta] = rangoPreset('mes');
+		desdeInput = desde;
+		hastaInput = hasta;
 		await cargar();
 	});
 </script>
@@ -127,17 +142,27 @@
 	</header>
 	<ModuleNav activo="netos" />
 
-	<div class="glass-card p-3 mb-3 flex flex-wrap items-end gap-2">
-		<label class="block grow min-w-[130px]">
-			<span class="text-[10px] font-semibold text-g360-muted dark:text-g360-mutedDark block mb-0.5">Desde</span>
-			<input type="date" bind:value={desdeInput} class="glass-input py-2" />
-		</label>
-		<label class="block grow min-w-[130px]">
-			<span class="text-[10px] font-semibold text-g360-muted dark:text-g360-mutedDark block mb-0.5">Hasta</span>
-			<input type="date" bind:value={hastaInput} class="glass-input py-2" />
-		</label>
-		<button class="btn-secondary shrink-0 py-2" on:click={aplicar}>Aplicar</button>
+	<div class="flex gap-2 mb-3 flex-wrap">
+		<button class="px-3.5 py-2 rounded-full text-xs font-semibold min-h-[40px] {preset === 'mes' ? 'bg-primary-600 text-white' : 'bg-g360-bg dark:bg-white/10 text-g360-muted dark:text-g360-mutedDark'}" on:click={() => elegirPreset('mes')}>Este mes</button>
+		<button class="px-3.5 py-2 rounded-full text-xs font-semibold min-h-[40px] {preset === '3m' ? 'bg-primary-600 text-white' : 'bg-g360-bg dark:bg-white/10 text-g360-muted dark:text-g360-mutedDark'}" on:click={() => elegirPreset('3m')}>3 meses</button>
+		<button class="px-3.5 py-2 rounded-full text-xs font-semibold min-h-[40px] {preset === '6m' ? 'bg-primary-600 text-white' : 'bg-g360-bg dark:bg-white/10 text-g360-muted dark:text-g360-mutedDark'}" on:click={() => elegirPreset('6m')}>6 meses</button>
+		<button class="px-3.5 py-2 rounded-full text-xs font-semibold min-h-[40px] {preset === 'anio' ? 'bg-primary-600 text-white' : 'bg-g360-bg dark:bg-white/10 text-g360-muted dark:text-g360-mutedDark'}" on:click={() => elegirPreset('anio')}>Año</button>
+		<button class="px-3 py-2 rounded-full text-xs font-semibold min-h-[40px] {preset === 'custom' ? 'bg-primary-600 text-white' : 'bg-g360-bg dark:bg-white/10 text-g360-muted dark:text-g360-mutedDark'}" on:click={() => (rangoAbierto = !rangoAbierto)} title="Elegir fechas exactas">Otro</button>
 	</div>
+
+	{#if rangoAbierto || preset === 'custom'}
+		<div class="glass-card p-3 mb-3 flex flex-wrap items-end gap-2">
+			<label class="block grow min-w-[130px]">
+				<span class="text-[10px] font-semibold text-g360-muted dark:text-g360-mutedDark block mb-0.5">Desde</span>
+				<input type="date" bind:value={desdeInput} class="glass-input py-2" />
+			</label>
+			<label class="block grow min-w-[130px]">
+				<span class="text-[10px] font-semibold text-g360-muted dark:text-g360-mutedDark block mb-0.5">Hasta</span>
+				<input type="date" bind:value={hastaInput} class="glass-input py-2" />
+			</label>
+			<button class="btn-secondary shrink-0 py-2" on:click={aplicar}>Aplicar</button>
+		</div>
+	{/if}
 
 	{#if periodos}
 		<p class="text-[10px] text-g360-muted dark:text-g360-mutedDark mb-3">
@@ -228,5 +253,7 @@
 </div>
 
 <G360Signature version="1.0.0" />
+
+
 
 
