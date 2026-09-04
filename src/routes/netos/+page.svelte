@@ -9,6 +9,7 @@
 	import { fmtNum, fechaISO } from '$lib/utils/format.js';
 	import { displayVendedor } from '$lib/utils/display.js';
 	import ModuleNav from '$lib/components/ModuleNav.svelte';
+	import { proximoOrden, ordenarPor, indicador } from '$lib/utils/orden.js';
 
 	let desde = '';
 	let hasta = '';

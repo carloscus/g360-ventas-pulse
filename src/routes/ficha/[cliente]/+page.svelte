@@ -17,6 +17,7 @@
 	import { cargarResumenComercial, cargarCrossSell, evolucionMensual } from '$lib/api/fichaComercial.js';
 	import { cargarHistorialPrecios, analisisAnual, detectarAnomalias, historialDeSku, compararClientesPorSku } from '$lib/api/precios.js';
 	import { displayCliente, displayVendedor } from '$lib/utils/display.js';
+	import { proximoOrden, ordenarPor, indicador } from '$lib/utils/orden.js';
 
 	$: clienteId = decodeURIComponent($page.params.cliente || '');
 
