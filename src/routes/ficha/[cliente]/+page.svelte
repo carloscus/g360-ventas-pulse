@@ -17,7 +17,6 @@
 	import { cargarResumenComercial, cargarCrossSell, evolucionMensual } from '$lib/api/fichaComercial.js';
 	import { cargarHistorialPrecios, analisisAnual, detectarAnomalias, historialDeSku, compararClientesPorSku } from '$lib/api/precios.js';
 	import { displayCliente, displayVendedor } from '$lib/utils/display.js';
-	import MontoTooltip from '$lib/components/MontoTooltip.svelte';
 
 	$: clienteId = decodeURIComponent($page.params.cliente || '');
 
@@ -214,7 +213,7 @@
 			<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
 				<div class="glass-card p-3 text-center">
 					<p class="text-xs text-g360-muted dark:text-g360-mutedDark">Ventas</p>
-					<MontoTooltip monto={resumen.totalVentas} />
+					<p class="text-lg font-bold text-primary-700 dark:text-primary-400">{fmtSoles(resumen.totalVentas)}</p>
 				</div>
 				<div class="glass-card p-3 text-center">
 					<p class="text-xs text-g360-muted dark:text-g360-mutedDark">NCs</p>

@@ -90,7 +90,7 @@ src/
 │   ├── api/                  postgrest, cache, clientes, radar,
 │   │                         stock, precios, fichaComercial,
 │   │                         dashboard, ventasResumen, catalogo
-│   ├── components/           ProductSearchModal, MontoTooltip,
+│   ├── components/           ProductSearchModal, IgvCalculator,
 │   │                         G360Signature, ThemeToggle, PWAInstallPrompt
 │   ├── export/               fichaXlsx (ExcelJS lazy, headers ERP nc-sustentor)
 │   ├── stores/               vendedor, ruta, contexto
@@ -147,3 +147,4 @@ adoptados del plan Asistente Comercial.
 Proyecto hermano de [g360-stock-reporter-lit](https://github.com/carloscus/g360-stock-reporter-lit)
 (misma familia de PWA de campo CIPSA) y `g360-ventas-db` (fuente de datos
 Supabase). Signature: *powered by G360*.
+

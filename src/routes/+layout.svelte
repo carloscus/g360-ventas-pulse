@@ -1,6 +1,7 @@
 <script>
 	import '../app.css';
 	import PWAInstallPrompt from '$lib/components/PWAInstallPrompt.svelte';
+	import IgvCalculator from '$lib/components/IgvCalculator.svelte';
 
 	export let data;
 </script>
@@ -14,3 +15,5 @@
 </div>
 
 <PWAInstallPrompt />
+<IgvCalculator />
+

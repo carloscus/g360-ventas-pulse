@@ -11,7 +11,6 @@
 	import { fmtSoles, fmtNum } from '$lib/utils/format.js';
 	import { displayCliente, displayVendedor } from '$lib/utils/display.js';
 	import { setClienteContexto } from '$lib/stores/contexto.js';
-	import MontoTooltip from '$lib/components/MontoTooltip.svelte';
 
 	let cargando = true;
 	let datos = null;
@@ -140,7 +139,7 @@
 										{displayCliente(c.id_cliente)} - {c.productos.length} productos con recompra vencida
 									</p>
 								</div>
-								<MontoTooltip monto={c.valorTotal} clase="font-bold text-primary-700 dark:text-primary-400 shrink-0" />
+								<p class="font-bold text-primary-700 dark:text-primary-400 shrink-0">{fmtSoles(c.valorTotal)}</p>
 							</button>
 						</li>
 					{/each}
@@ -225,12 +224,12 @@
 					<div class="grid grid-cols-3 gap-3 mt-2 mb-3">
 						<div class="glass-card p-3 text-center">
 							<p class="text-[10px] text-g360-muted dark:text-g360-mutedDark">Mes en curso</p>
-							<MontoTooltip monto={resumenVentas.mesActual.soles} />
+							<p class="text-base font-bold text-primary-700 dark:text-primary-400">{fmtSoles(resumenVentas.mesActual.soles)}</p>
 							<p class="text-[9px] text-g360-muted dark:text-g360-mutedDark">{resumenVentas.mesActual.mes} (en curso)</p>
 						</div>
 						<div class="glass-card p-3 text-center">
 							<p class="text-[10px] text-g360-muted dark:text-g360-mutedDark">Mes anterior</p>
-							<MontoTooltip monto={resumenVentas.mesAnterior.soles} />
+							<p class="text-base font-bold text-g360-text dark:text-g360-textDark">{fmtSoles(resumenVentas.mesAnterior.soles)}</p>
 							{#if resumenVentas.varVsAnterior !== null}
 								<p class="text-[10px] font-semibold {resumenVentas.varVsAnterior >= 0 ? 'text-success-600 dark:text-success-400' : 'text-danger-600 dark:text-danger-400'}">
 									{resumenVentas.varVsAnterior >= 0 ? '+' : ''}{(resumenVentas.varVsAnterior * 100).toFixed(0)}%
@@ -241,7 +240,7 @@
 						</div>
 						<div class="glass-card p-3 text-center">
 							<p class="text-[10px] text-g360-muted dark:text-g360-mutedDark">Mismo mes {resumenVentas.mismoMesAnioAnterior.mes.slice(0, 4)}</p>
-							<MontoTooltip monto={resumenVentas.mismoMesAnioAnterior.soles} />
+							<p class="text-base font-bold text-g360-text dark:text-g360-textDark">{fmtSoles(resumenVentas.mismoMesAnioAnterior.soles)}</p>
 							{#if resumenVentas.varVsAnioAnterior !== null}
 								<p class="text-[10px] font-semibold {resumenVentas.varVsAnioAnterior >= 0 ? 'text-success-600 dark:text-success-400' : 'text-danger-600 dark:text-danger-400'}">
 									{resumenVentas.varVsAnioAnterior >= 0 ? '+' : ''}{(resumenVentas.varVsAnioAnterior * 100).toFixed(0)}%
@@ -317,6 +316,7 @@
 <ProductSearchModal bind:open={searchOpen} />
 
 <G360Signature version="1.0.0" />
+
 
 
 
