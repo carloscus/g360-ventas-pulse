@@ -74,7 +74,7 @@
 		showThemeToggle
 	>
 		<span slot="subtitle">
-			Vendedor {displayVendedor(vendedor?.id)}{#if vendedor?.nombre} - {vendedor.nombre}{/if}
+			
 		</span>
 	</PageHeader>
 
@@ -305,6 +305,7 @@
 
 	{/if}
 </div>
+
 
 
 

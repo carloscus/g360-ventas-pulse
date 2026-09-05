@@ -136,7 +136,6 @@
 		profileId={vendedor?.id || ''}
 		showThemeToggle
 	>
-		<span slot="subtitle">Vendedor {displayVendedor(vendedor?.id)} · ventas − NCs − devoluciones</span>
 	</PageHeader>
 
 	<div class="flex gap-2 mb-3 flex-wrap">
@@ -248,6 +247,7 @@
 		</div>
 	{/if}
 </div>
+
 
 
 

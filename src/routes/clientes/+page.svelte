@@ -90,7 +90,7 @@
 		showThemeToggle
 	>
 		<span slot="subtitle">
-			Vendedor {displayVendedor(vendedor?.id)}{#if nomVendedor} - {nomVendedor}{/if} · {periodoDesde} a {periodoHasta}
+			{periodoDesde} a {periodoHasta}
 		</span>
 	</PageHeader>
 
@@ -122,7 +122,7 @@
 	{:else if clientes.length === 0}
 		<div class="glass-card p-8 text-center text-g360-muted dark:text-g360-mutedDark">
 			<p class="font-semibold mb-1">Sin clientes en el período</p>
-			<p class="text-xs">No hay ventas registradas para el vendedor {displayVendedor(vendedor?.id)} entre {periodoDesde} y {periodoHasta}.</p>
+			<p class="text-xs">No hay ventas registradas entre {periodoDesde} y {periodoHasta}.</p>
 		</div>
 	{:else}
 		<ul class="space-y-2">
@@ -149,6 +149,8 @@
 		</ul>
 	{/if}
 </div>
+
+
 
 
 

@@ -124,7 +124,7 @@
 		profileId={vendedor?.id || ''}
 	>
 		<span slot="subtitle">
-			Vendedor {displayVendedor(vendedor?.id)}{#if nomVendedor} - {nomVendedor}{/if} · Datos hasta 16:00 (Perú)
+			 · Datos hasta 16:00 (Perú)
 			{#if stockMeta?.stale}
 				<span class="badge badge-warning px-1.5 py-0 text-[10px]">obsoleto</span>
 			{/if}
@@ -212,6 +212,7 @@
 		</ul>
 	{/if}
 </div>
+
 
 
 
