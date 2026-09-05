@@ -79,7 +79,6 @@
 			</div>
 		</div>
 		<div class="flex items-center gap-1">
-			<button class="btn-ghost" on:click={() => searchOpen.set(true)} title="Buscar producto">Buscar</button>
 			<ProfileMenu nombre={vendedor?.nombre || ''} id={vendedor?.id || ''} />
 			<ThemeToggle />
 		</div>

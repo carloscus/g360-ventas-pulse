@@ -6,9 +6,9 @@ module.exports = {
 			colors: {
 				g360: {
 					bg: '#f8fafc',
-					bgDark: '#0b1220',
+					bgDark: '#0D1520',
 					surface: '#ffffff',
-					surfaceDark: '#151e2e',
+					surfaceDark: '#182335',
 					accent: '#008f5d',
 					accentDark: '#00d084',
 					text: '#1f2937',
@@ -69,3 +69,4 @@ module.exports = {
 	},
 	plugins: []
 };
+

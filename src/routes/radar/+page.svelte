@@ -15,6 +15,7 @@
 	import { displayCliente, displayVendedor } from '$lib/utils/display.js';
 	import { setClienteContexto } from '$lib/stores/contexto.js';
 	import ProfileMenu from '$lib/components/ProfileMenu.svelte';
+	import { searchOpen } from '$lib/stores/search.js';
 
 	let cargando = true;
 	let error = null;
@@ -135,7 +136,8 @@
 		</div>
 		<div class="flex items-center gap-1 shrink-0">
 			<button class="btn-ghost" on:click={() => cargarStock(true)} disabled={stockCargando} title="Actualizar stock">↻</button>
-		</div>
+					<ProfileMenu nombre={vendedor?.nombre || nomVendedor || ''} id={vendedor?.id || ''} />
+</div>
 	</header>
 
 	{#if rutaIds.length > 0}
@@ -219,6 +221,7 @@
 </div>
 
 <G360Signature version="1.0.0" />
+
 
 
 

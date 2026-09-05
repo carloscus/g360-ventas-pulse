@@ -100,7 +100,6 @@
 		</div>
 		<div class="flex items-center gap-1">
 			<button class="btn-secondary" on:click={() => goto(`${base}/radar`)}>Radar</button>
-			<button class="btn-ghost" on:click={() => searchOpen.set(true)} title="Buscar producto">Buscar</button>
 			<ProfileMenu nombre={vendedor?.nombre || nomVendedor || ''} id={vendedor?.id || ''} />
 			<ThemeToggle />
 

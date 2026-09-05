@@ -140,7 +140,6 @@
 				</p>
 			</div>
 		</div>
-			<button class="btn-ghost" on:click={() => searchOpen.set(true)} title="Buscar producto">Buscar</button>
 			<ProfileMenu nombre={vendedor?.nombre || ''} id={vendedor?.id || ''} />
 		<ThemeToggle />
 	</header>
