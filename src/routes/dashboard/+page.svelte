@@ -63,11 +63,12 @@
 	<title>Dashboard - Ventas Pulse</title>
 </svelte:head>
 
-<div class="min-h-screen px-4 py-6 max-w-3xl mx-auto" use:pullToRefresh={{onRefresh: cargar}}>
+<div class="min-h-screen px-4 py-6 max-w-3xl mx-auto" use:pullToRefresh={{onRefresh: () => cargar(true)}}>
 
 	<PageHeader
 		title="Hoy"
 		showLogo
+		showSearch
 		showProfile
 		profileName={vendedor?.nombre || ''}
 		profileId={vendedor?.id || ''}

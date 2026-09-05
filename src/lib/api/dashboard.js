@@ -11,7 +11,7 @@ import { fechaISO } from '$lib/utils/format.js';
  * de estado (proximos a recompra), stock (argumentos) y ventas 90d vs 90d
  * previos (caidas).
  */
-export async function cargarDashboard(idVendedor, hoy = new Date()) {
+export async function cargarDashboard(idVendedor, hoy = new Date(), { force = false } = {}) {
 	const resultado = {
 		prioritarios: [],
 		proximos: [],
@@ -22,7 +22,7 @@ export async function cargarDashboard(idVendedor, hoy = new Date()) {
 
 	// --- Directorio 180d (clientes activos) ---
 	const d180 = new Date(hoy.getTime() - 180 * 86400000);
-	const dir = await cargarClientesVendedor(idVendedor, fechaISO(d180), fechaISO(hoy));
+	const dir = await cargarClientesVendedor(idVendedor, fechaISO(d180), fechaISO(hoy), { force });
 	if (dir.error) {
 		resultado.errores.push({ seccion: 'directorio', error: dir.error });
 		return resultado;
@@ -33,7 +33,7 @@ export async function cargarDashboard(idVendedor, hoy = new Date()) {
 	resultado.nomVendedor = nomVendedor;
 
 	// --- Prioritarios: top radar ---
-	const radar = await cargarRadar(ids, ids);
+	const radar = await cargarRadar(ids, ids, { force });
 	if (radar.error) {
 		resultado.errores.push({ seccion: 'radar', error: radar.error });
 	} else {
@@ -44,9 +44,9 @@ export async function cargarDashboard(idVendedor, hoy = new Date()) {
 
 	// --- Paralelo: stock + proximos + caidas (independientes entre si) ---
 	const [stockRes, proxRes, caidasRes] = await Promise.allSettled([
-		getStockMapa(),
-		cargarProximos(ids, hoy),
-		cargarCaidas(idVendedor, ids, hoy)
+		getStockMapa({ force }),
+		cargarProximos(ids, hoy, { force }),
+		cargarCaidas(idVendedor, ids, hoy, { force })
 	]);
 
 	// Alertas de stock sobre los productos prioritarios
@@ -86,7 +86,7 @@ export async function cargarDashboard(idVendedor, hoy = new Date()) {
 
 const PROX_SELECT = 'id_cliente,nom_cliente,id_articulo,nom_articulo,nom_linea,n_compras,ultima_compra,dias_cadencia,dias_silencio,cadencia_efectiva,estado_oportunidad';
 
-async function cargarProximos(idsClientes, hoy) {
+async function cargarProximos(idsClientes, hoy, { force = false } = {}) {
 	if (!idsClientes.length) return [];
 	const todas = [];
 	for (let i = 0; i < idsClientes.length; i += 200) {
@@ -97,7 +97,7 @@ async function cargarProximos(idsClientes, hoy) {
 				filters: [`id_cliente=in.(${chunk.join(',')})`, 'estado_oportunidad=eq.OK'],
 				select: PROX_SELECT
 			})
-		);
+		, { force });
 		if (!res.error) todas.push(...(res.data || []));
 	}
 	const vistos = new Map();
@@ -137,7 +137,7 @@ function cadFinal(r) {
 
 const CAIDA_SELECT = 'id_cliente,nom_cliente,soles';
 
-async function cargarCaidas(idVendedor, idsActivos, hoy) {
+async function cargarCaidas(idVendedor, idsActivos, hoy, { force = false } = {}) {
 	if (!idsActivos.length) return [];
 	const finA = hoy;
 	const inicioA = new Date(hoy.getTime() - 90 * 86400000);
@@ -156,7 +156,7 @@ async function cargarCaidas(idVendedor, idsActivos, hoy) {
 			};
 			const res = await cachedGet('ventas-caida', { ...params, offset }, () =>
 				postgrestGet('ventas', { ...params, offset })
-			);
+			, { force });
 			if (res.error) break;
 			const page = res.data || [];
 			for (const x of page) {

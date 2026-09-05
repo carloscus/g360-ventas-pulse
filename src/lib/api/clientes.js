@@ -9,20 +9,20 @@ const SELECT_CLIENTES = 'id_cliente,nom_cliente,id_vendedor,nom_vendedor,fecha_o
  * La vista historial timeoutea con filtro id_vendedor (LAG no puede empujar el
  * filtro), por eso este path usa la tabla con paginacion.
  */
-export async function cargarClientesVendedor(idVendedor, desde, hasta) {
-	const res = await _cargarClientes(idVendedor, desde, hasta);
+export async function cargarClientesVendedor(idVendedor, desde, hasta, { force = false } = {}) {
+	const res = await _cargarClientes(idVendedor, desde, hasta, { force });
 	// Fallback anti-timeout (57014): vendedores masivos con ventana larga.
 	// Reintenta con 180 dias y avisa al llamador.
 	const msg = String(res.error?.message || res.error || '');
 	if (res.error && /57014|timeout/i.test(msg) && desde > new Date(Date.now() - 180 * 86400000).toISOString().slice(0, 10)) {
 		console.warn('[clientes] timeout, reintentando con ventana de 180 dias');
-		const res2 = await _cargarClientes(idVendedor, new Date(Date.now() - 180 * 86400000).toISOString().slice(0, 10), hasta);
+		const res2 = await _cargarClientes(idVendedor, new Date(Date.now() - 180 * 86400000).toISOString().slice(0, 10), hasta, { force });
 		return { ...res2, periodoAjustado: true };
 	}
 	return res;
 }
 
-async function _cargarClientes(idVendedor, desde, hasta) {
+async function _cargarClientes(idVendedor, desde, hasta, { force = false } = {}) {
 	const filters = [eq('id_vendedor', idVendedor), gte('fecha_orig', desde), lte('fecha_orig', hasta)];
 	let offset = 0;
 	const todas = [];
@@ -32,7 +32,8 @@ async function _cargarClientes(idVendedor, desde, hasta) {
 		const res = await cachedGet(
 			'ventas',
 			{ ...params, offset },
-			() => postgrestGet('ventas', { ...params, offset })
+			() => postgrestGet('ventas', { ...params, offset }),
+			{ force }
 		);
 		if (res.error) return { error: res.error, source: res.source, data: [] };
 		source = res.source;

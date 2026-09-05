@@ -76,7 +76,7 @@
 	<title>Mis Clientes - Ventas Cockpit</title>
 </svelte:head>
 
-<div class="min-h-screen px-4 py-6 max-w-3xl mx-auto"  use:pullToRefresh={{onRefresh: cargar}}>
+<div class="min-h-screen px-4 py-6 max-w-3xl mx-auto"  use:pullToRefresh={{onRefresh: () => cargar(true)}}>
 
 	<PageHeader
 		title="Mis Clientes"
@@ -84,6 +84,7 @@
 		backHref="/dashboard"
 		backLabel="Volver a Hoy"
 		showLogo
+		showSearch
 		showProfile
 		profileName={vendedor?.nombre || nomVendedor || ''}
 		profileId={vendedor?.id || ''}

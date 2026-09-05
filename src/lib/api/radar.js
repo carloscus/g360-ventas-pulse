@@ -12,7 +12,7 @@ const MIN_COMPRAS = 3;
  * directorio (in. por chunks) y aplica filtros de calidad en el app.
  * Devuelve clientes con oportunidades priorizadas por valor estimado.
  */
-export async function cargarRadar(idsClientes, idsActivos) {
+export async function cargarRadar(idsClientes, idsActivos, { force = false } = {}) {
 	if (!idsClientes || idsClientes.length === 0) {
 		return { data: [], source: 'network', error: null };
 	}
@@ -33,7 +33,8 @@ export async function cargarRadar(idsClientes, idsActivos) {
 			const res = await cachedGet(
 				'vw_radar_recompra',
 				{ ...params, offset },
-				() => postgrestGet('vw_radar_recompra', { ...params, offset })
+				() => postgrestGet('vw_radar_recompra', { ...params, offset }),
+				{ force }
 			);
 			if (res.error) return { error: res.error, source: res.source, data: [] };
 			source = res.source;

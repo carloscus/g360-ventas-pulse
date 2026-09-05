@@ -1,8 +1,9 @@
 import { postgrestGet, eq, gte, lte } from './postgrest.js';
 import { cachedGet } from './cache.js';
 
-const SELECT = 'id_cliente,nom_cliente,id_linea,nom_linea,id_articulo,nom_articulo,soles';
+const SELECT = 'id_cliente,nom_cliente,id_linea,nom_linea,id_articulo,nom_articulo,soles,fecha_orig';
 const PAGE_SIZE = 1000;
+const HUELLA_KEY = 'vp_netos_huella';
 
 /** Resta n anios a una fecha ISO (29-feb cae a 28-feb; aceptado en design.md). */
 export function desplazarAnio(fechaIso, anios) {
@@ -11,7 +12,7 @@ export function desplazarAnio(fechaIso, anios) {
 	return d.toISOString().slice(0, 10);
 }
 
-async function fetchSlice(idVendedor, desde, hasta) {
+async function fetchSlice(idVendedor, desde, hasta, { force = false } = {}) {
 	const params = {
 		filters: [eq('id_vendedor', idVendedor), gte('fecha_orig', desde), lte('fecha_orig', hasta)],
 		select: SELECT,
@@ -25,7 +26,7 @@ async function fetchSlice(idVendedor, desde, hasta) {
 	while (true) {
 		const res = await cachedGet('ventas-netos', { ...params, offset }, () =>
 			postgrestGet('ventas', { ...params, offset })
-		);
+		, { force });
 		if (res.error) {
 			error = res.error;
 			break;
@@ -54,9 +55,9 @@ export function rebanadasMes(desde, hasta) {
 	return out;
 }
 
-async function fetchPeriodo(idVendedor, desde, hasta) {
+async function fetchPeriodo(idVendedor, desde, hasta, { force = false } = {}) {
 	const slices = rebanadasMes(desde, hasta);
-	const resultados = await Promise.all(slices.map(([s, e]) => fetchSlice(idVendedor, s, e)));
+	const resultados = await Promise.all(slices.map(([s, e]) => fetchSlice(idVendedor, s, e, { force })));
 	const todas = [];
 	let source = 'network';
 	let error = null;
@@ -81,20 +82,63 @@ function variacion(a, b) {
 }
 
 /**
+ * Huella de datos del periodo A: {n, sum, min, max} calculada de las filas ya
+ * descargadas (0 requests extra). Permite al UI avisar "sin cambios" en un
+ * refresh y mostrar la fecha de corte "Datos al {max}".
+ * Nota: detecta movimiento del dataset, no datos mal cargados — la señal
+ * canonica de sincronizacion sera synced_at de g360-ventas-db.
+ */
+function huella(filas) {
+	let sum = 0;
+	let min = null;
+	let max = null;
+	for (const r of filas || []) {
+		sum += Number(r.soles) || 0;
+		const f = r.fecha_orig || '';
+		if (f) {
+			if (min === null || f < min) min = f;
+			if (max === null || f > max) max = f;
+		}
+	}
+	return { n: (filas || []).length, sum: Math.round(sum * 100) / 100, min, max };
+}
+
+export function huellasIguales(a, b) {
+	if (!a || !b) return false;
+	return a.n === b.n && a.sum === b.sum && a.min === b.min && a.max === b.max;
+}
+
+export function leerHuella(idVendedor, desde, hasta) {
+	try {
+		return JSON.parse(sessionStorage.getItem(`${HUELLA_KEY}_${idVendedor}_${desde}_${hasta}`) || 'null');
+	} catch {
+		return null;
+	}
+}
+
+export function guardarHuella(idVendedor, desde, hasta, h) {
+	try {
+		sessionStorage.setItem(`${HUELLA_KEY}_${idVendedor}_${desde}_${hasta}`, JSON.stringify(h));
+	} catch {
+		/* sessionStorage lleno o bloqueado: la huella es opcional */
+	}
+}
+
+/**
  * Montos netos (suma de soles con signos del ERP: venta +, NC -, devolucion -)
  * en 3 periodos alineados: A = rango, B = A-1anio, C = A-2anios.
  * Arbol cliente -> linea -> sku ordenado por neto A desc.
  */
-export async function cargarNetos(idVendedor, desde, hasta) {
+export async function cargarNetos(idVendedor, desde, hasta, { force = false } = {}) {
 	const desdeB = desplazarAnio(desde, 1);
 	const hastaB = desplazarAnio(hasta, 1);
 	const desdeC = desplazarAnio(desde, 2);
 	const hastaC = desplazarAnio(hasta, 2);
 
 	const [ra, rb, rc] = await Promise.allSettled([
-		fetchPeriodo(idVendedor, desde, hasta),
-		fetchPeriodo(idVendedor, desdeB, hastaB),
-		fetchPeriodo(idVendedor, desdeC, hastaC)
+		fetchPeriodo(idVendedor, desde, hasta, { force }),
+		fetchPeriodo(idVendedor, desdeB, hastaB, { force }),
+		fetchPeriodo(idVendedor, desdeC, hastaC, { force })
 	]);
 
 	if (ra.status === 'rejected' || ra.value.error) {
@@ -154,6 +198,7 @@ export async function cargarNetos(idVendedor, desde, hasta) {
 		error: null,
 		clientes,
 		source: fuente,
+		huella: huella(ra.value.data),
 		incompleto: {
 			a: ra.value.incompleto === true,
 			b: rb.status === 'fulfilled' ? rb.value.incompleto === true : true,

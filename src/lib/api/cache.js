@@ -57,43 +57,58 @@ function writeLocal(key, data) {
 
 /**
  * Cache de 4 capas (patron reporter-lit):
- * memoria (<1ms) -> sessionStorage (<5 min) -> localStorage (<7 dias) -> red
+ * memoria (TTL 5 min) -> sessionStorage (<5 min) -> localStorage (<7 dias) -> red
+ * La memoria TAMBIEN expira: sin esto, una pestaña abierta dias sirve datos
+ * congelados (el caso "app abierta 1 semana"). `force: true` salta las capas
+ * de lectura, va a red y sobre-escribe las 3 capas (pull-to-refresh, botones ↻).
  * @param {string} view vista PostgREST
  * @param {object} params argumentos de postgrestGet
  * @param {Function} fetcher funcion async que resuelve los datos
+ * @param {{force?: boolean}} opts force = refetch ignorando cache
  * @returns {Promise<{data: *|null, source: 'memory'|'session'|'local'|'network'|'none', error: Error|null}>}
  */
-export async function cachedGet(view, params, fetcher) {
+export async function cachedGet(view, params, fetcher, { force = false } = {}) {
 	const key = cacheKey(view, params);
 
-	if (MEMORY.has(key)) {
-		console.debug('[cache] memory hit', key);
-		return { data: MEMORY.get(key), source: 'memory', error: null };
-	}
+	if (!force) {
+		const mem = MEMORY.get(key);
+		if (mem && now() - mem.t <= SESSION_TTL_MS) {
+			console.debug('[cache] memory hit', key);
+			return { data: mem.d, source: 'memory', error: null };
+		}
+		if (mem) MEMORY.delete(key);
 
-	const sessionData = readSession(key);
-	if (sessionData !== null) {
-		console.debug('[cache] session hit', key);
-		MEMORY.set(key, sessionData);
-		return { data: sessionData, source: 'session', error: null };
-	}
+		const sessionData = readSession(key);
+		if (sessionData !== null) {
+			console.debug('[cache] session hit', key);
+			MEMORY.set(key, { d: sessionData, t: now() });
+			return { data: sessionData, source: 'session', error: null };
+		}
 
-	const localData = readLocal(key);
-	if (localData !== null) {
-		console.debug('[cache] local hit', key);
-		MEMORY.set(key, localData);
-		return { data: localData, source: 'local', error: null };
+		const localData = readLocal(key);
+		if (localData !== null) {
+			console.debug('[cache] local hit', key);
+			MEMORY.set(key, { d: localData, t: now() });
+			return { data: localData, source: 'local', error: null };
+		}
 	}
 
 	try {
 		const data = await fetcher();
-		MEMORY.set(key, data);
+		MEMORY.set(key, { d: data, t: now() });
 		writeSession(key, data);
 		writeLocal(key, data);
-		console.debug('[cache] network fetch', key);
+		console.debug('[cache] network fetch', force ? '(force)' : '', key);
 		return { data, source: 'network', error: null };
 	} catch (err) {
 		console.warn('[cache] network error', key, err);
+		// En force, si la red falla, caer a las capas viejas mejor que vacio
+		if (force) {
+			const fallback = readSession(key) ?? readLocal(key) ?? (MEMORY.get(key)?.d ?? null);
+			if (fallback !== null) {
+				return { data: fallback, source: 'session', error: err };
+			}
+		}
 		return { data: null, source: 'none', error: err };
 	}
 }
