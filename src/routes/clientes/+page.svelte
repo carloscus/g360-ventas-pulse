@@ -10,7 +10,6 @@
 	import { displayCliente, displayVendedor } from '$lib/utils/display.js';
 	import { setClienteContexto } from '$lib/stores/contexto.js';
 	import { pullToRefresh } from '$lib/actions/ptr.js';
-	import ModuleNav from '$lib/components/ModuleNav.svelte';
 	import { proximoOrden, ordenarPor, indicador } from '$lib/utils/orden.js';
 
 
@@ -103,7 +102,6 @@
 			<button class="btn-ghost" on:click={salir} title="Cambiar de vendedor">Cambiar</button>
 		</div>
 	</header>
-	<ModuleNav activo="clientes" />
 
 	{#if periodoAjustado}
 		<div class="badge badge-warning mb-4">Tiempo de respuesta agotado: mostrando ultimos 180 dias</div>

@@ -14,7 +14,6 @@
 	import { fmtSoles, fmtNum } from '$lib/utils/format.js';
 	import { displayCliente, displayVendedor } from '$lib/utils/display.js';
 	import { setClienteContexto } from '$lib/stores/contexto.js';
-	import ModuleNav from '$lib/components/ModuleNav.svelte';
 
 	let cargando = true;
 	let error = null;
@@ -137,7 +136,6 @@
 			<button class="btn-ghost" on:click={() => cargarStock(true)} disabled={stockCargando} title="Actualizar stock">↻</button>
 		</div>
 	</header>
-	<ModuleNav activo="radar" />
 
 	{#if rutaIds.length > 0}
 		<div class="glass-card p-4 mb-4 flex items-center justify-between">

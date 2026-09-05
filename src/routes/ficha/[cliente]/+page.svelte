@@ -6,7 +6,6 @@
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 	import ToastContainer from '$lib/components/ToastContainer.svelte';
 	import G360Signature from '$lib/components/G360Signature.svelte';
-	import ProductSearchModal from '$lib/components/ProductSearchModal.svelte';
 	import { setClienteContexto } from '$lib/stores/contexto.js';
 	import { vendedorActivo, restaurarSesion } from '$lib/stores/vendedor.js';
 	import { cargarFicha } from './aggregation.js';
@@ -34,7 +33,6 @@
 	let crossSell = [];
 	let rowsAll = [];
 	let stockMeta = null;
-	let searchOpen = false;
 	let preciosAbierto = false;
 	let preciosCargando = false;
 	let preciosParcial = false;
@@ -248,7 +246,6 @@
 			</div>
 		</div>
 		<div class="flex items-center gap-1 shrink-0">
-			<button class="btn-ghost" on:click={() => (searchOpen = true)} title="Buscar producto">Buscar</button>
 			<button class="btn-primary" on:click={exportar} disabled={exportando || filas.length === 0} title="Exportar ficha a Excel">{exportando ? '...' : 'XLSX'}</button>
 			<ThemeToggle />
 		</div>
@@ -558,7 +555,6 @@
 
 
 
-<ProductSearchModal bind:open={searchOpen} />
 
 
 

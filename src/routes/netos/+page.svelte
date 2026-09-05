@@ -8,7 +8,6 @@
 	import { cargarNetos } from '$lib/api/netos.js';
 	import { fmtNum, fechaISO } from '$lib/utils/format.js';
 	import { displayVendedor } from '$lib/utils/display.js';
-	import ModuleNav from '$lib/components/ModuleNav.svelte';
 	import { proximoOrden, ordenarPor, indicador } from '$lib/utils/orden.js';
 
 	let desde = '';
@@ -141,7 +140,6 @@
 		</div>
 		<ThemeToggle />
 	</header>
-	<ModuleNav activo="netos" />
 
 	<div class="flex gap-2 mb-3 flex-wrap">
 		<button class="px-3.5 py-2 rounded-full text-xs font-semibold min-h-[40px] {preset === 'mes' ? 'bg-primary-600 text-white' : 'bg-g360-bg dark:bg-white/10 text-g360-muted dark:text-g360-mutedDark'}" on:click={() => elegirPreset('mes')}>Este mes</button>

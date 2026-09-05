@@ -3,7 +3,6 @@
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
-	import ProductSearchModal from '$lib/components/ProductSearchModal.svelte';
 	import { pullToRefresh } from '$lib/actions/ptr.js';
 	import G360Signature from '$lib/components/G360Signature.svelte';
 	import { vendedorActivo, restaurarSesion, setVendedorNombre } from '$lib/stores/vendedor.js';
@@ -12,13 +11,11 @@
 	import { fmtSoles, fmtNum } from '$lib/utils/format.js';
 	import { displayCliente, displayVendedor } from '$lib/utils/display.js';
 	import { setClienteContexto } from '$lib/stores/contexto.js';
-	import ModuleNav from '$lib/components/ModuleNav.svelte';
 
 	let cargando = true;
 	let datos = null;
 	let error = null;
 	let offline = false;
-	let searchOpen = false;
 	let comoVoy = false;
 	let resumenVentas = null;
 	let ventasCargando = false;
@@ -80,11 +77,9 @@
 			</div>
 		</div>
 		<div class="flex items-center gap-1">
-			<button class="btn-ghost" on:click={() => (searchOpen = true)} title="Buscar producto">Buscar</button>
 			<ThemeToggle />
 		</div>
 	</header>
-	<ModuleNav activo="hoy" />
 
 	{#if cargando}
 		<section class="mb-6">
@@ -314,7 +309,6 @@
 	{/if}
 </div>
 
-<ProductSearchModal bind:open={searchOpen} />
 
 <G360Signature version="1.0.0" />
 
