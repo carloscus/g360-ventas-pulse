@@ -14,6 +14,7 @@
 	import { fmtSoles, fmtNum } from '$lib/utils/format.js';
 	import { displayCliente, displayVendedor } from '$lib/utils/display.js';
 	import { setClienteContexto } from '$lib/stores/contexto.js';
+	import ProfileMenu from '$lib/components/ProfileMenu.svelte';
 
 	let cargando = true;
 	let error = null;
@@ -218,6 +219,7 @@
 </div>
 
 <G360Signature version="1.0.0" />
+
 
 
 

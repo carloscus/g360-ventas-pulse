@@ -9,6 +9,7 @@
 	import { fmtNum, fechaISO } from '$lib/utils/format.js';
 	import { displayVendedor } from '$lib/utils/display.js';
 	import { proximoOrden, ordenarPor, indicador } from '$lib/utils/orden.js';
+	import ProfileMenu from '$lib/components/ProfileMenu.svelte';
 
 	let desde = '';
 	let hasta = '';
@@ -138,6 +139,8 @@
 				</p>
 			</div>
 		</div>
+			<button class="btn-ghost" on:click={() => searchOpen.set(true)} title="Buscar producto">Buscar</button>
+			<ProfileMenu nombre={vendedor?.nombre || ''} id={vendedor?.id || ''} />
 		<ThemeToggle />
 	</header>
 
@@ -252,6 +255,7 @@
 </div>
 
 <G360Signature version="1.0.0" />
+
 
 
 

@@ -11,6 +11,7 @@
 	import { fmtSoles, fmtNum } from '$lib/utils/format.js';
 	import { displayCliente, displayVendedor } from '$lib/utils/display.js';
 	import { setClienteContexto } from '$lib/stores/contexto.js';
+	import ProfileMenu from '$lib/components/ProfileMenu.svelte';
 
 	let cargando = true;
 	let datos = null;
@@ -77,6 +78,8 @@
 			</div>
 		</div>
 		<div class="flex items-center gap-1">
+			<button class="btn-ghost" on:click={() => searchOpen.set(true)} title="Buscar producto">Buscar</button>
+			<ProfileMenu nombre={vendedor?.nombre || ''} id={vendedor?.id || ''} />
 			<ThemeToggle />
 		</div>
 	</header>

@@ -247,6 +247,8 @@
 		</div>
 		<div class="flex items-center gap-1 shrink-0">
 			<button class="btn-primary" on:click={exportar} disabled={exportando || filas.length === 0} title="Exportar ficha a Excel">{exportando ? '...' : 'XLSX'}</button>
+			<button class="btn-ghost" on:click={() => searchOpen.set(true)} title="Buscar producto">Buscar</button>
+			<ProfileMenu nombre={vendedor?.nombre || ''} id={vendedor?.id || ''} />
 			<ThemeToggle />
 		</div>
 	</header>
@@ -545,6 +547,7 @@
 
 
 <G360Signature version="1.0.0" />
+
 
 
 
