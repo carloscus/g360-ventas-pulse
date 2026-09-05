@@ -1,0 +1,1 @@
+import{w as u}from"./DsSVO9NZ.js";const o=u([]);let a=0;function n(t,e="info",s=4e3){const r=++a;return o.update(c=>[...c,{id:r,message:t,type:e,duration:s}]),s>0&&setTimeout(()=>i(r),s),r}function i(t){o.update(e=>e.filter(s=>s.id!==t))}function d(t,e){return n(t,"success",e)}function m(t,e){return n(t,"error",e)}export{m as e,i as r,d as s,o as t};

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+		<meta name="mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+		<meta name="theme-color" content="#008f5d" />
+		<meta name="application-name" content="VentasPulse CIPSA" />
+		<meta name="description" content="Cockpit de campo para vendedores CIPSA: clientes, ficha comercial, radar de recompra, precios y stock" />
+		<meta name="author" content="Carlos Cusi - G360" />
+		<meta name="generator" content="G360" />
+		<meta name="robots" content="noindex, nofollow" />
+		<meta name="format-detection" content="telephone=no" />
+		<meta name="color-scheme" content="light dark" />
+		<meta property="og:title" content="VentasPulse CIPSA" />
+		<meta property="og:description" content="Cockpit de ventas en campo" />
+		<meta property="og:type" content="website" />
+		<link rel="manifest" href="/g360-ventas-pulse/manifest.json" />
+		<link rel="apple-touch-icon" href="/g360-ventas-pulse/apple-touch-icon.png" />
+		<link rel="icon" type="image/png" sizes="32x32" href="/g360-ventas-pulse/favicon-32x32.png" />
+		<link rel="icon" type="image/png" sizes="16x16" href="/g360-ventas-pulse/favicon-16x16.png" />
+		<link rel="icon" href="/g360-ventas-pulse/favicon.svg" />
+		<script>
+			(function() {
+				var theme = localStorage.getItem('theme');
+				if (theme === 'dark') {
+					document.documentElement.classList.add('dark');
+				} else {
+					document.documentElement.classList.remove('dark');
+				}
+			})();
+		</script>
+		<link href="/g360-ventas-pulse/_app/immutable/entry/start.DtSORejH.js" rel="modulepreload">
+		<link href="/g360-ventas-pulse/_app/immutable/chunks/DsSVO9NZ.js" rel="modulepreload">
+		<link href="/g360-ventas-pulse/_app/immutable/chunks/CJWHh5fu.js" rel="modulepreload">
+		<link href="/g360-ventas-pulse/_app/immutable/entry/app.B0W7pxA_.js" rel="modulepreload">
+		<link href="/g360-ventas-pulse/_app/immutable/chunks/C1FmrZbK.js" rel="modulepreload">
+		<link href="/g360-ventas-pulse/_app/immutable/chunks/C3HPnd1b.js" rel="modulepreload">
+		
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div class="contents">
+			<script>
+				{
+					__sveltekit_1jxdtw3 = {
+						base: "/g360-ventas-pulse",
+						assets: "/g360-ventas-pulse"
+					};
+
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import("/g360-ventas-pulse/_app/immutable/entry/start.DtSORejH.js"),
+						import("/g360-ventas-pulse/_app/immutable/entry/app.B0W7pxA_.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element);
+					});
+				}
+			</script>
+		</div>
+	</body>
+</html>
