@@ -178,18 +178,5 @@
 		color: #f0f4f8;
 	}
 
-	@media (max-width: 420px) {
-		.page-header {
-			grid-template-columns: minmax(0, 1fr);
-			align-items: stretch;
-		}
-
-		.page-header-leading {
-			align-items: flex-start;
-		}
-
-		.page-header-actions {
-			justify-content: flex-end;
-		}
-	}
+	
 </style>
