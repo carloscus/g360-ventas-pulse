@@ -18,6 +18,7 @@
 	import { displayCliente, displayVendedor } from '$lib/utils/display.js';
 	import { proximoOrden, ordenarPor, indicador } from '$lib/utils/orden.js';
 	import { searchOpen } from '$lib/stores/search.js';
+	import ProfileMenu from '$lib/components/ProfileMenu.svelte';
 
 	$: clienteId = decodeURIComponent($page.params.cliente || '');
 
