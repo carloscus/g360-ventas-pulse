@@ -2,6 +2,69 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+	--g360-safe-bottom: env(safe-area-inset-bottom, 0px);
+	--g360-nav-row-height: 64px;
+	--g360-nav-height: 0px;
+	--g360-signature-height: 32px;
+	--g360-chrome-stack-gap: 0px;
+	--g360-chrome-gap: 12px;
+	--g360-fab-size: 48px;
+	--g360-nav-item-radius: 10px;
+	--g360-chrome-surface: rgba(255, 255, 255, 0.95);
+	--g360-chrome-border: #e5e7eb;
+	--g360-chrome-nav-muted: #6b7280;
+	--g360-chrome-signature-muted: #64748b;
+	--g360-chrome-active: #008f5d;
+	--g360-nav-hover-bg: rgba(0, 0, 0, 0.04);
+	--g360-nav-active-bg: rgba(0, 143, 93, 0.08);
+	--g360-focus-ring: rgba(0, 143, 93, 0.35);
+	--g360-fab-bg: #007a4f;
+	--g360-fab-fg: #ffffff;
+	--g360-fab-shadow: 0 6px 16px rgba(0, 122, 79, 0.4);
+	--g360-header-gap: 12px;
+	--g360-header-spacing: 20px;
+	--g360-header-title-size: 18px;
+	--g360-header-meta-size: 12px;
+	--g360-header-logo-height: 36px;
+	--g360-layer-chrome: 40;
+	--g360-layer-prompt: 50;
+	--g360-layer-float: 60;
+	--g360-layer-overlay: 70;
+}
+
+html.dark {
+	--g360-chrome-surface: rgba(11, 18, 32, 0.92);
+	--g360-chrome-border: rgba(255, 255, 255, 0.06);
+	--g360-chrome-nav-muted: #94a3b8;
+	--g360-chrome-signature-muted: #94a3b8;
+	--g360-chrome-active: #00d084;
+	--g360-nav-hover-bg: rgba(255, 255, 255, 0.06);
+	--g360-nav-active-bg: rgba(0, 208, 132, 0.12);
+	--g360-focus-ring: rgba(0, 208, 132, 0.45);
+	--g360-fab-bg: #00d084;
+	--g360-fab-fg: #0b1220;
+	--g360-fab-shadow: 0 6px 16px rgba(0, 208, 132, 0.3);
+}
+
+.app-shell {
+	min-height: 100dvh;
+	--g360-bottom-chrome-height: calc(var(--g360-signature-height) + var(--g360-nav-height) + var(--g360-chrome-stack-gap) + var(--g360-safe-bottom));
+	--g360-content-bottom: calc(var(--g360-bottom-chrome-height) + var(--g360-chrome-gap));
+	--g360-float-bottom: calc(var(--g360-bottom-chrome-height) + var(--g360-chrome-gap));
+	--g360-banner-bottom: calc(var(--g360-float-bottom) + var(--g360-fab-size) + var(--g360-chrome-gap));
+}
+
+.app-shell--navigation {
+	--g360-nav-height: var(--g360-nav-row-height);
+	--g360-chrome-stack-gap: 4px;
+}
+
+.app-shell-content {
+	min-height: 100dvh;
+	padding-bottom: var(--g360-content-bottom);
+}
+
 @layer base {
 	body {
 		@apply bg-g360-bg text-g360-text dark:bg-g360-bgDark dark:text-g360-textDark;

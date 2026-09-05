@@ -42,7 +42,7 @@
 
 {#if abierto}
 	<div
-		class="fixed inset-0 z-[70] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
+		class="fixed inset-0 z-[var(--g360-layer-overlay)] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
 		on:click={cerrar}
 		role="button"
 		tabindex="-1"
@@ -114,19 +114,19 @@
 <style>
 	.igv-fab {
 		position: fixed;
-		bottom: 48px;
-		right: 16px;
-		z-index: 60;
-		width: 48px;
-		height: 48px;
+		bottom: var(--g360-float-bottom);
+		right: max(16px, env(safe-area-inset-right, 0px));
+		z-index: var(--g360-layer-float);
+		width: var(--g360-fab-size);
+		height: var(--g360-fab-size);
 		border-radius: 50%;
-		background: #007a4f;
-		color: #fff;
+		background: var(--g360-fab-bg);
+		color: var(--g360-fab-fg);
 		font-size: 12px;
 		font-weight: 800;
 		letter-spacing: 0.5px;
 		border: none;
-		box-shadow: 0 6px 16px rgba(0, 122, 79, 0.4);
+		box-shadow: var(--g360-fab-shadow);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -142,9 +142,15 @@
 		box-shadow: 0 8px 20px rgba(0, 122, 79, 0.5);
 	}
 
+	.igv-fab:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 3px var(--g360-focus-ring), var(--g360-fab-shadow);
+	}
+
 	:global(.dark) .igv-fab {
-		background: #00d084;
-		color: #0b1220;
+		background: var(--g360-fab-bg);
+		color: var(--g360-fab-fg);
+		box-shadow: var(--g360-fab-shadow);
 	}
 </style>
 

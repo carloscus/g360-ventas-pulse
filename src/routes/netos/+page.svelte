@@ -2,15 +2,12 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
-	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
-	import G360Signature from '$lib/components/G360Signature.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
 	import { vendedorActivo, restaurarSesion } from '$lib/stores/vendedor.js';
 	import { cargarNetos } from '$lib/api/netos.js';
 	import { fmtNum, fechaISO } from '$lib/utils/format.js';
 	import { displayVendedor } from '$lib/utils/display.js';
 	import { proximoOrden, ordenarPor, indicador } from '$lib/utils/orden.js';
-	import ProfileMenu from '$lib/components/ProfileMenu.svelte';
-	import { searchOpen } from '$lib/stores/search.js';
 
 	let desde = '';
 	let hasta = '';
@@ -122,27 +119,25 @@
 		hastaInput = hasta;
 		await cargar();
 	});
-	function goBack() { if (history.length > 1) history.back(); else goto(`${base}/dashboard`); }
 </script>
 
 <svelte:head>
 	<title>Montos netos - Ventas Pulse</title>
 </svelte:head>
 
-<div class="min-h-screen px-4 py-6 max-w-4xl mx-auto pb-24">
-	<header class="flex items-center justify-between mb-4">
-		<div class="flex items-center gap-3 min-w-0">
-			<button class="btn-ghost shrink-0" on:click={goBack} title="Volver a Hoy" aria-label="Volver a Hoy">←</button>
-			<div class="min-w-0">
-				<h1 class="text-lg font-bold text-g360-text dark:text-g360-textDark">Montos netos</h1>
-				<p class="text-xs text-g360-muted dark:text-g360-mutedDark">
-					Vendedor {displayVendedor(vendedor?.id)} · ventas − NCs − devoluciones
-				</p>
-			</div>
-		</div>
-			<ProfileMenu nombre={vendedor?.nombre || ''} id={vendedor?.id || ''} />
-		<ThemeToggle />
-	</header>
+<div class="min-h-screen px-4 py-6 max-w-4xl mx-auto">
+	<PageHeader
+		title="Montos netos"
+		showBack
+		backHref="/dashboard"
+		backLabel="Volver a Hoy"
+		showProfile
+		profileName={vendedor?.nombre || ''}
+		profileId={vendedor?.id || ''}
+		showThemeToggle
+	>
+		<span slot="subtitle">Vendedor {displayVendedor(vendedor?.id)} · ventas − NCs − devoluciones</span>
+	</PageHeader>
 
 	<div class="flex gap-2 mb-3 flex-wrap">
 		<button class="px-3.5 py-2 rounded-full text-xs font-semibold min-h-[40px] {preset === 'mes' ? 'bg-primary-600 text-white' : 'bg-g360-bg dark:bg-white/10 text-g360-muted dark:text-g360-mutedDark'}" on:click={() => elegirPreset('mes')}>Este mes</button>
@@ -253,8 +248,6 @@
 		</div>
 	{/if}
 </div>
-
-<G360Signature version="1.0.0" />
 
 
 

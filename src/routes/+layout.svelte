@@ -1,30 +1,31 @@
 <script>
 	import '../app.css';
+	import AppChrome from '$lib/components/AppChrome.svelte';
 	import PWAInstallPrompt from '$lib/components/PWAInstallPrompt.svelte';
 	import IgvCalculator from '$lib/components/IgvCalculator.svelte';
-	import TabBar from '$lib/components/TabBar.svelte';
 	import ProductSearchModal from '$lib/components/ProductSearchModal.svelte';
 	import { vendedorActivo } from '$lib/stores/vendedor.js';
 	import { searchOpen } from '$lib/stores/search.js';
 	import { page } from '$app/stores';
+	import { getActiveModule } from '$lib/navigation/modules.js';
 
 	export let data;
 
-	$: activo = $page.url.pathname.includes('dashboard') ? 'hoy'
-		: $page.url.pathname.includes('radar') ? 'radar'
-		: $page.url.pathname.includes('netos') ? 'netos'
-		: 'clientes';
+	$: activo = getActiveModule($page.url.pathname);
+	$: showNavigation = Boolean($vendedorActivo) && Boolean(activo);
 </script>
 
 <svelte:head>
 	<title>{data.title}</title>
 </svelte:head>
 
-<div class="min-h-screen">
-	<slot />
-</div>
+<div class="app-shell" class:app-shell--navigation={showNavigation}>
+	<div class="app-shell-content">
+		<slot />
+	</div>
 
-<TabBar activo={activo} nombre={$vendedorActivo?.nombre || ''} id={$vendedorActivo?.id || ''} />
-<ProductSearchModal bind:open={$searchOpen} />
-<IgvCalculator />
-<PWAInstallPrompt />
+	<AppChrome {activo} {showNavigation} version="1.0.0" />
+	<ProductSearchModal bind:open={$searchOpen} />
+	<IgvCalculator />
+	<PWAInstallPrompt />
+</div>

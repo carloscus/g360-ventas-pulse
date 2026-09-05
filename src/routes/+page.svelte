@@ -2,8 +2,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
-	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
-	import G360Signature from '$lib/components/G360Signature.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
 	import { restaurarSesion, setVendedor, validarParVendedorCliente, normalizarCliente } from '$lib/stores/vendedor.js';
 	import { getStockMapa } from '$lib/api/stock.js';
 	import { displayVendedor } from '$lib/utils/display.js';
@@ -62,9 +61,7 @@
 
 <div class="min-h-screen flex flex-col items-center justify-center px-4 py-10">
 	<div class="w-full max-w-md">
-		<div class="flex justify-end mb-4">
-			<ThemeToggle />
-		</div>
+		<PageHeader variant="minimal" showThemeToggle />
 
 		<div class="glass-card p-6 sm:p-8">
 			<div class="flex flex-col items-center mb-6">
@@ -117,6 +114,4 @@
 		</div>
 	</div>
 </div>
-
-<G360Signature version="1.0.0" />
 

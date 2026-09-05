@@ -2,17 +2,14 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
-	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
 	import { pullToRefresh } from '$lib/actions/ptr.js';
-	import G360Signature from '$lib/components/G360Signature.svelte';
 	import { vendedorActivo, restaurarSesion, setVendedorNombre } from '$lib/stores/vendedor.js';
 	import { cargarDashboard } from '$lib/api/dashboard.js';
 	import { cargarResumenVentas } from '$lib/api/ventasResumen.js';
 	import { fmtSoles, fmtNum } from '$lib/utils/format.js';
 	import { displayCliente, displayVendedor } from '$lib/utils/display.js';
 	import { setClienteContexto } from '$lib/stores/contexto.js';
-	import ProfileMenu from '$lib/components/ProfileMenu.svelte';
-	import { searchOpen } from '$lib/stores/search.js';
 
 	let cargando = true;
 	let datos = null;
@@ -66,23 +63,20 @@
 	<title>Dashboard - Ventas Pulse</title>
 </svelte:head>
 
-<div class="min-h-screen px-4 py-6 max-w-3xl mx-auto pb-24"  use:pullToRefresh={{onRefresh: cargar}}>
+<div class="min-h-screen px-4 py-6 max-w-3xl mx-auto" use:pullToRefresh={{onRefresh: cargar}}>
 
-	<header class="flex items-center justify-between mb-5">
-		<div class="flex items-center gap-3">
-			<img src="{base}/logo-cipsa.svg" alt="CIPSA" class="h-9 w-auto" />
-			<div>
-				<h1 class="text-lg font-bold text-g360-text dark:text-g360-textDark">Hoy</h1>
-				<p class="text-xs text-g360-muted dark:text-g360-mutedDark">
-					Vendedor {displayVendedor(vendedor?.id)}{#if vendedor?.nombre} - {vendedor.nombre}{/if}
-				</p>
-			</div>
-		</div>
-		<div class="flex items-center gap-1">
-			<ProfileMenu nombre={vendedor?.nombre || ''} id={vendedor?.id || ''} />
-			<ThemeToggle />
-		</div>
-	</header>
+	<PageHeader
+		title="Hoy"
+		showLogo
+		showProfile
+		profileName={vendedor?.nombre || ''}
+		profileId={vendedor?.id || ''}
+		showThemeToggle
+	>
+		<span slot="subtitle">
+			Vendedor {displayVendedor(vendedor?.id)}{#if vendedor?.nombre} - {vendedor.nombre}{/if}
+		</span>
+	</PageHeader>
 
 	{#if cargando}
 		<section class="mb-6">
@@ -311,9 +305,6 @@
 
 	{/if}
 </div>
-
-
-<G360Signature version="1.0.0" />
 
 
 

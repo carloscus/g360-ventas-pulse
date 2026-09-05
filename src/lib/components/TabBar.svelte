@@ -1,62 +1,87 @@
 <script>
-	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
+	import { MODULES } from '$lib/navigation/modules.js';
 
-	export let activo = 'hoy';
-
-	const modulos = [
-		{ id: 'hoy', etiqueta: 'Hoy', ruta: '/dashboard' },
-		{ id: 'radar', etiqueta: 'Radar', ruta: '/radar' },
-		{ id: 'netos', etiqueta: 'Netos', ruta: '/netos' },
-		{ id: 'clientes', etiqueta: 'Clientes', ruta: '/clientes' }
-	];
-
-	function ir(ruta) { goto(`${base}${ruta}`); }
+	export let activo = null;
 </script>
 
-<nav class="tabbar" aria-label="Navegacion principal">
-	{#each modulos as m (m.id)}
-		<button
-			class="tabbar-btn {activo === m.id ? 'tabbar-activo' : ''}"
-			on:click={() => ir(m.ruta)}
-			aria-current={activo === m.id ? 'page' : undefined}
+<nav class="tabbar" aria-label="Navegación principal">
+	{#each MODULES as modulo (modulo.id)}
+		<a
+			class="tabbar-link"
+			class:tabbar-activo={activo === modulo.id}
+			href={`${base}${modulo.ruta}`}
+			aria-current={activo === modulo.id ? 'page' : undefined}
 		>
-			{m.etiqueta}
-		</button>
+			<span class="tabbar-label">{modulo.etiqueta}</span>
+		</a>
 	{/each}
 </nav>
 
 <style>
 	.tabbar {
-		position: fixed;
-		bottom: 0; left: 0; right: 0;
-		z-index: 40;
-		display: flex;
-		background: rgba(11,18,32,0.92);
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 4px;
+		width: 100%;
+		height: var(--g360-nav-height);
+		padding: 4px;
+		background: var(--g360-chrome-surface);
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
-		border-top: 1px solid rgba(255,255,255,0.06);
-		padding: 4px 4px max(env(safe-area-inset-bottom, 4px), 4px);
 	}
-	:global(html:not(.dark)) .tabbar { background: rgba(255,255,255,0.95); border-color: #e5e7eb; }
-	.tabbar-btn {
-		flex: 1;
-		padding: 10px 4px;
+
+	.tabbar-link {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 0;
+		min-height: 48px;
+		padding: 8px 4px;
+		border: 1px solid transparent;
+		border-radius: var(--g360-nav-item-radius);
+		color: var(--g360-chrome-nav-muted);
 		font-size: 12px;
 		font-weight: 600;
+		line-height: 1.25;
 		text-align: center;
-		color: #94a3b8;
-		background: none;
-		border: none;
-		border-radius: 10px;
-		cursor: pointer;
-		transition: color 0.15s, background 0.15s;
-		-webkit-tap-highlight-color: transparent;
+		text-decoration: none;
+		white-space: nowrap;
+		transition: color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
 		touch-action: manipulation;
+		-webkit-tap-highlight-color: transparent;
 	}
-	:global(html:not(.dark)) .tabbar-btn { color: #6b7280; }
-	.tabbar-btn:hover { background: rgba(255,255,255,0.06); }
-	:global(html:not(.dark)) .tabbar-btn:hover { background: rgba(0,0,0,0.04); }
-	.tabbar-activo { color: #00d084; }
-	:global(html:not(.dark)) .tabbar-activo { color: #008f5d; }
+
+	.tabbar-label {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.tabbar-link:hover {
+		background: var(--g360-nav-hover-bg);
+	}
+
+	.tabbar-link:active {
+		transform: scale(0.98);
+	}
+
+	.tabbar-link:focus-visible {
+		outline: 3px solid var(--g360-focus-ring);
+		outline-offset: -3px;
+	}
+
+	.tabbar-activo {
+		color: var(--g360-chrome-active);
+		background: var(--g360-nav-active-bg);
+		box-shadow: inset 0 -2px 0 var(--g360-chrome-active);
+	}
+
+	@media (max-width: 340px) {
+		.tabbar-link {
+			font-size: 11px;
+			padding-inline: 2px;
+		}
+	}
 </style>

@@ -68,11 +68,15 @@
 	}
 	:global(.dark) .profile-avatar { background: #00d084; color: #0b1220; }
 	.profile-avatar:hover { transform: scale(1.06); }
+	.profile-avatar:focus-visible {
+		outline: 3px solid var(--g360-focus-ring);
+		outline-offset: 2px;
+	}
 	.profile-menu {
 		position: absolute;
 		top: calc(100% + 6px);
 		right: 0;
-		z-index: 60;
+		z-index: var(--g360-layer-float);
 		background: #151e2e;
 		color: #f0f4f8;
 		border: 1px solid rgba(255,255,255,0.12);

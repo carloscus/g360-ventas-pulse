@@ -2,11 +2,9 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
-	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
-	import G360Signature from '$lib/components/G360Signature.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
 	import { vendedorActivo, restaurarSesion } from '$lib/stores/vendedor.js';
 	import { cargarRuta, toggleVisita, rutaDia } from '$lib/stores/ruta.js';
-	import { cachedGet } from '$lib/api/cache.js';
 	import { cargarClientesVendedor } from '$lib/api/clientes.js';
 	import { cargarRadar, priorizarRadar, adjuntarStock } from '$lib/api/radar.js';
 	import { getStockMapa, disponibleSku, clasificarStock } from '$lib/api/stock.js';
@@ -14,8 +12,6 @@
 	import { fmtSoles, fmtNum } from '$lib/utils/format.js';
 	import { displayCliente, displayVendedor } from '$lib/utils/display.js';
 	import { setClienteContexto } from '$lib/stores/contexto.js';
-	import ProfileMenu from '$lib/components/ProfileMenu.svelte';
-	import { searchOpen } from '$lib/stores/search.js';
 
 	let cargando = true;
 	let error = null;
@@ -111,34 +107,31 @@
 		}
 		await cargar();
 	});
-	function goBack() { if (history.length > 1) history.back(); else goto(`${base}/dashboard`); }
 </script>
 
 <svelte:head>
 	<title>Radar - Ventas Cockpit</title>
 </svelte:head>
 
-<div class="min-h-screen px-4 py-6 max-w-3xl mx-auto pb-24"  use:pullToRefresh={{onRefresh: cargar}}>
-	<header class="flex items-center justify-between mb-4">
-		<div class="flex items-center gap-3">
-			<button class="btn-ghost" on:click={goBack} title="Volver" aria-label="Volver">
-</button>
-			<div>
-				<h1 class="text-lg font-bold text-g360-text dark:text-g360-textDark">Radar de recompra</h1>
-				<p class="text-xs text-g360-muted dark:text-g360-mutedDark">
-					Vendedor {displayVendedor(vendedor?.id)}{#if nomVendedor} - {nomVendedor}{/if} · Datos hasta 16:00 (Perú)
-					{#if stockMeta?.stale}
-						<span class="badge badge-warning px-1.5 py-0 text-[10px]">obsoleto</span>
-					{/if}
-					{#if stockMeta?.fecha_descarga} · stock {new Date(stockMeta.fecha_descarga).toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit' })}{/if}
-				</p>
-			</div>
-		</div>
-		<div class="flex items-center gap-1 shrink-0">
-			<button class="btn-ghost" on:click={() => cargarStock(true)} disabled={stockCargando} title="Actualizar stock">↻</button>
-					<ProfileMenu nombre={vendedor?.nombre || nomVendedor || ''} id={vendedor?.id || ''} />
-</div>
-	</header>
+<div class="min-h-screen px-4 py-6 max-w-3xl mx-auto" use:pullToRefresh={{onRefresh: cargar}}>
+	<PageHeader
+		title="Radar de recompra"
+		showBack
+		backHref="/dashboard"
+		backLabel="Volver"
+		showProfile
+		profileName={vendedor?.nombre || nomVendedor || ''}
+		profileId={vendedor?.id || ''}
+	>
+		<span slot="subtitle">
+			Vendedor {displayVendedor(vendedor?.id)}{#if nomVendedor} - {nomVendedor}{/if} · Datos hasta 16:00 (Perú)
+			{#if stockMeta?.stale}
+				<span class="badge badge-warning px-1.5 py-0 text-[10px]">obsoleto</span>
+			{/if}
+			{#if stockMeta?.fecha_descarga} · stock {new Date(stockMeta.fecha_descarga).toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit' })}{/if}
+		</span>
+		<button slot="actions" type="button" class="btn-ghost" on:click={() => cargarStock(true)} disabled={stockCargando} title="Actualizar stock" aria-label="Actualizar stock">↻</button>
+	</PageHeader>
 
 	{#if rutaIds.length > 0}
 		<div class="glass-card p-4 mb-4 flex items-center justify-between">
@@ -219,8 +212,6 @@
 		</ul>
 	{/if}
 </div>
-
-<G360Signature version="1.0.0" />
 
 
 

@@ -2,17 +2,14 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
-	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
-	import G360Signature from '$lib/components/G360Signature.svelte';
-	import { vendedorActivo, restaurarSesion, cambiarVendedor } from '$lib/stores/vendedor.js';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import { vendedorActivo, restaurarSesion } from '$lib/stores/vendedor.js';
 	import { cargarClientesVendedor, agruparClientes } from '$lib/api/clientes.js';
 	import { fmtSoles, fmtFecha, fechaISO } from '$lib/utils/format.js';
 	import { displayCliente, displayVendedor } from '$lib/utils/display.js';
 	import { setClienteContexto } from '$lib/stores/contexto.js';
 	import { pullToRefresh } from '$lib/actions/ptr.js';
 	import { proximoOrden, ordenarPor, indicador } from '$lib/utils/orden.js';
-	import ProfileMenu from '$lib/components/ProfileMenu.svelte';
-	import { searchOpen } from '$lib/stores/search.js';
 
 
 	let cargando = true;
@@ -63,11 +60,6 @@
 		goto(`${base}/ficha/${encodeURIComponent(cliente.id_cliente)}`);
 	}
 
-	async function salir() {
-		await cambiarVendedor();
-		goto(base || '/');
-	}
-
 	onMount(async () => {
 		setClienteContexto(null);
 		const sesion = $vendedorActivo || (await restaurarSesion());
@@ -78,7 +70,6 @@
 		calcularPeriodo();
 		await cargar();
 	});
-	function goBack() { if (history.length > 1) history.back(); else goto(`${base}/dashboard`); }
 </script>
 
 <svelte:head>
@@ -87,24 +78,21 @@
 
 <div class="min-h-screen px-4 py-6 max-w-3xl mx-auto"  use:pullToRefresh={{onRefresh: cargar}}>
 
-	<header class="flex items-center justify-between mb-6">
-		<div class="flex items-center gap-3">
-			<button class="btn-ghost shrink-0" on:click={goBack} title="Volver a Hoy" aria-label="Volver a Hoy">←</button>
-			<img src="{base}/logo-cipsa.svg" alt="CIPSA" class="h-9 w-auto" />
-			<div>
-				<h1 class="text-lg font-bold text-g360-text dark:text-g360-textDark">Mis Clientes</h1>
-				<p class="text-xs text-g360-muted dark:text-g360-mutedDark">
-					Vendedor {displayVendedor(vendedor?.id)}{#if nomVendedor} - {nomVendedor}{/if} · {periodoDesde} a {periodoHasta}
-				</p>
-			</div>
-		</div>
-		<div class="flex items-center gap-1">
-			<button class="btn-secondary" on:click={() => goto(`${base}/radar`)}>Radar</button>
-			<ProfileMenu nombre={vendedor?.nombre || nomVendedor || ''} id={vendedor?.id || ''} />
-			<ThemeToggle />
-
-		</div>
-	</header>
+	<PageHeader
+		title="Mis Clientes"
+		showBack
+		backHref="/dashboard"
+		backLabel="Volver a Hoy"
+		showLogo
+		showProfile
+		profileName={vendedor?.nombre || nomVendedor || ''}
+		profileId={vendedor?.id || ''}
+		showThemeToggle
+	>
+		<span slot="subtitle">
+			Vendedor {displayVendedor(vendedor?.id)}{#if nomVendedor} - {nomVendedor}{/if} · {periodoDesde} a {periodoHasta}
+		</span>
+	</PageHeader>
 
 	{#if periodoAjustado}
 		<div class="badge badge-warning mb-4">Tiempo de respuesta agotado: mostrando ultimos 180 dias</div>
@@ -161,8 +149,6 @@
 		</ul>
 	{/if}
 </div>
-
-<G360Signature version="1.0.0" />
 
 
 

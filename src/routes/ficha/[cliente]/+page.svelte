@@ -3,9 +3,8 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
-	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
 	import ToastContainer from '$lib/components/ToastContainer.svelte';
-	import G360Signature from '$lib/components/G360Signature.svelte';
 	import { setClienteContexto } from '$lib/stores/contexto.js';
 	import { vendedorActivo, restaurarSesion } from '$lib/stores/vendedor.js';
 	import { cargarFicha } from './aggregation.js';
@@ -15,10 +14,8 @@
 	import { getStockMapa, disponibleSku, clasificarStock } from '$lib/api/stock.js';
 	import { cargarResumenComercial, cargarCrossSell, evolucionMensual } from '$lib/api/fichaComercial.js';
 	import { cargarHistorialPrecios, analisisAnual, detectarAnomalias, historialDeSku, compararClientesPorSku } from '$lib/api/precios.js';
-	import { displayCliente, displayVendedor } from '$lib/utils/display.js';
+	import { displayCliente } from '$lib/utils/display.js';
 	import { proximoOrden, ordenarPor, indicador } from '$lib/utils/orden.js';
-	import { searchOpen } from '$lib/stores/search.js';
-	import ProfileMenu from '$lib/components/ProfileMenu.svelte';
 
 	$: clienteId = decodeURIComponent($page.params.cliente || '');
 
@@ -225,34 +222,37 @@
 		await cargar();
 	});
 	onDestroy(() => setClienteContexto(null));
-	function goBack() { if (history.length > 1) history.back(); else goto(`${base}/clientes`); }
 </script>
 
 <svelte:head>
 	<title>Ficha {displayCliente(clienteId)} - Ventas Cockpit</title>
 </svelte:head>
 
-<div class="min-h-screen px-4 py-6 max-w-6xl mx-auto pb-24">
+<div class="min-h-screen px-4 py-6 max-w-6xl mx-auto">
 	<ToastContainer />
 
-	<header class="flex items-center justify-between mb-4">
-		<div class="flex items-center gap-3 min-w-0">
-			<button class="btn-ghost shrink-0" on:click={goBack} title="Volver a Mis Clientes" aria-label="Volver a Mis Clientes">←</button>
-			<div class="min-w-0">
-				<h1 class="text-lg font-bold text-g360-text dark:text-g360-textDark truncate">
-					{rows[0]?.nom_cliente || displayCliente(clienteId)}
-				</h1>
-				<p class="text-xs text-g360-muted dark:text-g360-mutedDark">
-					{displayCliente(clienteId)} · {desde} a {hasta}
-				</p>
-			</div>
-		</div>
-		<div class="flex items-center gap-1 shrink-0">
-			<button class="btn-primary" on:click={exportar} disabled={exportando || filas.length === 0} title="Exportar ficha a Excel">{exportando ? '...' : 'XLSX'}</button>
-			<ProfileMenu nombre={vendedor?.nombre || ''} id={vendedor?.id || ''} />
-			<ThemeToggle />
-		</div>
-	</header>
+	<PageHeader
+		title={rows[0]?.nom_cliente || displayCliente(clienteId)}
+		showBack
+		backHref="/clientes"
+		backLabel="Volver a Mis Clientes"
+		showProfile
+		profileName={vendedor?.nombre || ''}
+		profileId={vendedor?.id || ''}
+		showThemeToggle
+	>
+		<span slot="subtitle">{displayCliente(clienteId)} · {desde} a {hasta}</span>
+		<button
+			slot="actions"
+			type="button"
+			class="btn-primary"
+			on:click={exportar}
+			disabled={exportando || filas.length === 0}
+			title="Exportar ficha a Excel"
+		>
+			{exportando ? '...' : 'XLSX'}
+		</button>
+	</PageHeader>
 
 
 	{#if offline && !cargando && !error}
@@ -545,9 +545,6 @@
 		</p>
 	{/if}
 </div>
-
-
-<G360Signature version="1.0.0" />
 
 
 
