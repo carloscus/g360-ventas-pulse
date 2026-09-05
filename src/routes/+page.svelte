@@ -1,5 +1,5 @@
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
 	import PageHeader from '$lib/components/PageHeader.svelte';
@@ -12,10 +12,44 @@
 	let error = '';
 	let verificando = false;
 
+	// Rate limit de login: 2 intentos fallidos -> bloqueo 3 min.
+	// Persistente en localStorage (recargar no lo resetea). Freno de cliente:
+	// la garantia real de acceso sera Supabase Auth + RLS (fase 4).
+	const MAX_INTENTOS = 2;
+	const BLOQUEO_MS = 3 * 60 * 1000;
+	const LS_FAILS = 'vp_login_fails';
+	const LS_UNTIL = 'vp_login_bloqueo_hasta';
+	let restanteBloqueo = 0;
+	let timerBloqueo = null;
+
+	function bloqueoActivo() {
+		const until = Number(localStorage.getItem(LS_UNTIL) || 0);
+		if (until > Date.now()) return until;
+		if (until) {
+			localStorage.removeItem(LS_UNTIL);
+			localStorage.removeItem(LS_FAILS);
+		}
+		return 0;
+	}
+
+	function iniciarCuenta(until) {
+		clearInterval(timerBloqueo);
+		const tick = () => {
+			restanteBloqueo = Math.max(0, Math.ceil((until - Date.now()) / 1000));
+			if (restanteBloqueo === 0) clearInterval(timerBloqueo);
+		};
+		tick();
+		timerBloqueo = setInterval(tick, 1000);
+	}
+
 	onMount(async () => {
+		const until = bloqueoActivo();
+		if (until) iniciarCuenta(until);
 		const previo = await restaurarSesion();
 		if (previo) goto(`${base}/dashboard`, { replaceState: true });
 	});
+
+	onDestroy(() => clearInterval(timerBloqueo));
 
 	function normalizarCodigo(v) {
 		const t = v.trim().toUpperCase();
@@ -26,6 +60,12 @@
 	}
 
 	async function enviar() {
+		if (restanteBloqueo > 0) return;
+		const until = bloqueoActivo();
+		if (until) {
+			iniciarCuenta(until);
+			return;
+		}
 		const v = codigo.trim();
 		const c = cliente.trim();
 		if (!v || !c) {
@@ -39,10 +79,12 @@
 			const idC = normalizarCliente(c);
 			const ok = await validarParVendedorCliente(idV, idC);
 			if (!ok) {
-				error = 'Vendedor o cliente incorrecto';
+				registrarFallo();
 				verificando = false;
 				return;
 			}
+			localStorage.removeItem(LS_FAILS);
+			localStorage.removeItem(LS_UNTIL);
 			setVendedor({ id: idV, nombre: '', display: displayVendedor(idV) });
 			// Prefetch del snapshot de stock en background: radar/dashboard abren con cache
 			getStockMapa().catch(() => {});
@@ -51,6 +93,21 @@
 			console.error('Error validando par:', e);
 			error = 'No se pudo validar el acceso. Verifica tu conexion';
 			verificando = false;
+		}
+	}
+
+	function registrarFallo() {
+		const fails = Number(localStorage.getItem(LS_FAILS) || 0) + 1;
+		if (fails >= MAX_INTENTOS) {
+			const until = Date.now() + BLOQUEO_MS;
+			localStorage.setItem(LS_UNTIL, String(until));
+			localStorage.setItem(LS_FAILS, String(fails));
+			iniciarCuenta(until);
+			error = `Acceso bloqueado ${Math.round(BLOQUEO_MS / 60000)} minutos por intentos fallidos`;
+		} else {
+			localStorage.setItem(LS_FAILS, String(fails));
+			const restan = MAX_INTENTOS - fails;
+			error = `Vendedor o cliente incorrecto (${restan} intento${restan === 1 ? '' : 's'} restante${restan === 1 ? '' : 's'})`;
 		}
 	}
 </script>
@@ -82,7 +139,7 @@
 					<input
 						type="text"
 						bind:value={codigo}
-						placeholder="Ej: 177"
+						placeholder="Tu codigo asignado"
 						inputmode="text"
 						autocomplete="off"
 						class="glass-input"
@@ -96,20 +153,29 @@
 					<input
 						type="text"
 						bind:value={cliente}
-						placeholder="Ej: 57796"
+						placeholder="Codigo de un cliente que atiendas"
 						inputmode="numeric"
 						autocomplete="off"
 						class="glass-input"
 					/>
 				</label>
 
-				{#if error}
-					<p class="text-sm text-danger-600 dark:text-danger-400 font-medium">{error}</p>
-				{/if}
+			{#if restanteBloqueo > 0}
+				<div class="rounded-xl bg-warning-50 dark:bg-warning-900/30 border border-warning-200 dark:border-warning-800 p-3 text-center">
+					<p class="text-sm font-semibold text-warning-700 dark:text-warning-400">
+						Acceso bloqueado temporalmente
+					</p>
+					<p class="text-xs text-warning-700 dark:text-warning-400 mt-1">
+						Reintenta en {Math.floor(restanteBloqueo / 60)}:{String(restanteBloqueo % 60).padStart(2, '0')}
+					</p>
+				</div>
+			{:else if error}
+				<p class="text-sm text-danger-600 dark:text-danger-400 font-medium">{error}</p>
+			{/if}
 
-				<button type="submit" class="btn-primary w-full" disabled={verificando}>
-					{verificando ? 'Verificando...' : 'Entrar'}
-				</button>
+			<button type="submit" class="btn-primary w-full" disabled={verificando || restanteBloqueo > 0}>
+				{verificando ? 'Verificando...' : restanteBloqueo > 0 ? 'Bloqueado' : 'Entrar'}
+			</button>
 			</form>
 		</div>
 	</div>
