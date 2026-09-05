@@ -33,6 +33,118 @@
 	let comparativaCargando = false;
 	let ultimaPorSku = new Map();
 
+	// Busqueda por voz (Web Speech API): SKU dígito por dígito -> modo estricto
+	// de prefijo; texto -> nombre/línea con tokens normalizados sin acentos.
+	// Requiere conexión (el reconocimiento de Chrome es server-side).
+	const SR = typeof window !== 'undefined' ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
+	const PALABRAS_DIGITO = {
+		cero: '0', uno: '1', una: '1', dos: '2', tres: '3', cuatro: '4',
+		cinco: '5', seis: '6', siete: '7', ocho: '8', nueve: '9'
+	};
+	let soportaVoz = Boolean(SR);
+	let escuchando = false;
+	let vozMsg = '';
+	let reconocimiento = null;
+
+	function normalizarTexto(t) {
+		return String(t || '')
+			.toLowerCase()
+			.normalize('NFD')
+			.replace(/[\u0300-\u036f]/g, '')
+			.trim();
+	}
+
+	function modoDeVoz(transcript) {
+		const texto = normalizarTexto(transcript);
+		const mapeado = texto.replace(/[a-z]+/g, (w) => PALABRAS_DIGITO[w] ?? ' ');
+		const digitos = mapeado.replace(/\D/g, '');
+		const letrasRestantes = mapeado.replace(/[\d\s]/g, '');
+		if (letrasRestantes.length > 0) return { modo: 'texto', texto, digitos };
+		return { modo: digitos.length >= 2 ? 'sku' : 'vacio', texto, digitos };
+	}
+
+	function matchTexto(p, tokens) {
+		const sku = String(p.sku).toLowerCase();
+		const nom = normalizarTexto(p.nombre);
+		const lin = normalizarTexto(p.linea || '');
+		return tokens.every((t) => sku.includes(t) || nom.includes(t) || lin.includes(t));
+	}
+
+	function dictar() {
+		if (!SR || escuchando) return;
+		reconocimiento?.stop?.();
+		vozMsg = 'Escuchando...';
+		escuchando = true;
+		const rec = new SR();
+		reconocimiento = rec;
+		rec.lang = 'es-PE';
+		rec.interimResults = false;
+		rec.maxAlternatives = 1;
+		rec.onresult = (e) => {
+			const t = e.results?.[0]?.[0]?.transcript || '';
+			vozMsg = '';
+			procesarVoz(t);
+		};
+		rec.onerror = (e) => {
+			vozMsg = e.error === 'not-allowed'
+				? 'Permiso de microfono denegado'
+				: 'No se pudo escuchar. Revisa la conexion o escribe el codigo';
+			escuchando = false;
+		};
+		rec.onend = () => {
+			escuchando = false;
+		};
+		try {
+			rec.start();
+		} catch {
+			escuchando = false;
+			vozMsg = '';
+		}
+	}
+
+	async function procesarVoz(transcript) {
+		const { modo, texto, digitos } = modoDeVoz(transcript);
+		const catalogo = await getCatalogoPorSku();
+		buscado = true;
+		resClientes = [];
+		if (modo === 'sku') {
+			query = digitos;
+			resProductos = [...catalogo.values()]
+				.filter((p) => String(p.sku).startsWith(digitos))
+				.slice(0, 10)
+				.map((p) => ({
+					...p,
+					stock: disponibleSku(stockMapa, p.sku),
+					precioCliente: preciosCliente.get(String(p.sku)) || null,
+					ncCliente: ncsCliente.get(String(p.sku)) || null,
+					ultima: ultimaPorSku.get(String(p.sku)) || null
+				}));
+			if (resProductos.length === 0) vozMsg = `Sin SKU que empiece por ${digitos}`;
+		} else if (modo === 'texto') {
+			query = texto;
+			const tokens = texto.split(/\s+/).filter(Boolean);
+			resProductos = [...catalogo.values()]
+				.filter((p) => matchTexto(p, tokens))
+				.slice(0, 20)
+				.map((p) => ({
+					...p,
+					stock: disponibleSku(stockMapa, p.sku),
+					precioCliente: preciosCliente.get(String(p.sku)) || null,
+					ncCliente: ncsCliente.get(String(p.sku)) || null,
+					ultima: ultimaPorSku.get(String(p.sku)) || null
+				}));
+			if (resProductos.length === 0) vozMsg = `Sin productos para "${transcript.trim()}"`;
+		} else {
+			vozMsg = 'No se detecto un codigo ni producto: dicta el SKU digito por digito o el nombre';
+			return;
+		}
+		const skusRes = resProductos.map((r) => String(r.sku));
+		if (skusRes.length > 0) {
+			await cargarUltimaCompra(skusRes);
+			resProductos = resProductos.map((r) => ({ ...r, ultima: ultimaPorSku.get(String(r.sku)) || r.ultima }));
+		}
+	}
+
 	$: clienteCtx = $clienteContexto;
 	$: if (open) {
 		alAbrir();
@@ -49,6 +161,7 @@
 		ncsCliente = new Map();
 		comparativa = null;
 		comparativaSku = null;
+		vozMsg = '';
 		if (!stockMapa) {
 			const s = await getStockMapa();
 			stockMapa = s.mapa;
@@ -123,6 +236,7 @@
 
 	function onInput() {
 		clearTimeout(debounceTimer);
+		vozMsg = '';
 		const q = query.trim();
 		if (q.length < 2) {
 			resProductos = [];
@@ -216,6 +330,8 @@
 
 	function cerrar() {
 		clearTimeout(debounceTimer);
+		reconocimiento?.stop?.();
+		escuchando = false;
 		open = false;
 		dispatch('close');
 	}
@@ -249,16 +365,37 @@
 		>
 			<div class="p-4 pb-2 border-b border-g360-surface/50 dark:border-white/10">
 				<div class="flex items-center gap-2">
-					<input
-						id="prod-search-input"
-						type="text"
-						bind:value={query}
-						on:input={onInput}
-						placeholder="Producto, cliente o codigo..." aria-label="Buscar producto o cliente"
-						class="glass-input"
-					/>
+					<div class="relative flex-1">
+						<input
+							id="prod-search-input"
+							type="text"
+							bind:value={query}
+							on:input={onInput}
+							placeholder="Producto, cliente o codigo..." aria-label="Buscar producto o cliente"
+							class="glass-input pr-11"
+						/>
+						{#if soportaVoz}
+							<button
+								type="button"
+								class="absolute right-1.5 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full {escuchando ? 'bg-danger-100 dark:bg-danger-900/40 text-danger-600 dark:text-danger-400 animate-pulse' : 'text-g360-muted dark:text-g360-mutedDark hover:bg-black/5 dark:hover:bg-white/10'}"
+								on:click={dictar}
+								disabled={escuchando}
+								aria-label="Buscar por voz"
+								title="Dicta el SKU digito por digito o el nombre del producto"
+							>
+								<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+									<path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z" />
+									<path d="M19 11a1 1 0 1 0-2 0 5 5 0 0 1-10 0 1 1 0 1 0-2 0 7 7 0 0 0 6 6.92V20H8a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-2.08A7 7 0 0 0 19 11z" />
+								</svg>
+							</button>
+						{/if}
+					</div>
 					<button class="btn-ghost shrink-0" on:click={cerrar} aria-label="Cerrar busqueda">X</button>
 				</div>
+
+				{#if vozMsg}
+					<p class="text-[10px] mt-1.5 font-semibold text-warning-700 dark:text-warning-400">{vozMsg}</p>
+				{/if}
 
 				<p class="text-[10px] mt-1.5 font-semibold {clienteCtx?.id ? 'text-primary-700 dark:text-primary-400' : 'text-g360-muted dark:text-g360-mutedDark'}">
 					{#if clienteCtx?.id}
