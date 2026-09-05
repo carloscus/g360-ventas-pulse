@@ -42,7 +42,7 @@
 		border: 1px solid transparent;
 		border-radius: var(--g360-nav-item-radius);
 		color: var(--g360-chrome-nav-muted);
-		font-size: 12px;
+		font-size: 11px;
 		font-weight: 600;
 		line-height: 1.25;
 		text-align: center;
@@ -85,3 +85,4 @@
 		}
 	}
 </style>
+
