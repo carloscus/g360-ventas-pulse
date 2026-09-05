@@ -10,6 +10,7 @@
 	import { displayVendedor } from '$lib/utils/display.js';
 	import { proximoOrden, ordenarPor, indicador } from '$lib/utils/orden.js';
 	import ProfileMenu from '$lib/components/ProfileMenu.svelte';
+	import { searchOpen } from '$lib/stores/search.js';
 
 	let desde = '';
 	let hasta = '';

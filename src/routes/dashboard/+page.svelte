@@ -12,6 +12,7 @@
 	import { displayCliente, displayVendedor } from '$lib/utils/display.js';
 	import { setClienteContexto } from '$lib/stores/contexto.js';
 	import ProfileMenu from '$lib/components/ProfileMenu.svelte';
+	import { searchOpen } from '$lib/stores/search.js';
 
 	let cargando = true;
 	let datos = null;

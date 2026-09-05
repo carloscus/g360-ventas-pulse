@@ -17,6 +17,7 @@
 	import { cargarHistorialPrecios, analisisAnual, detectarAnomalias, historialDeSku, compararClientesPorSku } from '$lib/api/precios.js';
 	import { displayCliente, displayVendedor } from '$lib/utils/display.js';
 	import { proximoOrden, ordenarPor, indicador } from '$lib/utils/orden.js';
+	import { searchOpen } from '$lib/stores/search.js';
 
 	$: clienteId = decodeURIComponent($page.params.cliente || '');
 
