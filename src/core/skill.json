@@ -1,8 +1,10 @@
 {
   "skill": "corporativo",
+  "name": "Ventas Pulse CIPSA",
+  "description": "Cockpit de campo para vendedores: agenda del dia, radar de recompra, montos netos, ficha comercial con export XLSX y busqueda global",
   "device": "pc",
   "template": "converted",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "convertedAt": "2026-04-08T18:02:36.808Z",
   "colors": {
     "bg": "#0b1220",

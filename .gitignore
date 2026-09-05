@@ -12,3 +12,7 @@ Thumbs.db
 !.env.example
 .vscode/
 .idea/
+
+# Capturas del manual con datos reales de clientes (repo PUBLICO: no versionar)
+assets/screenshots/*.png
+manual-ventas-pulse.pptx
