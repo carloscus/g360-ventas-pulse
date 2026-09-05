@@ -28,7 +28,7 @@
 	$: rutaIds = $rutaDia;
 	$: clientesVistos = soloRuta ? clientes.filter((c) => rutaIds.includes(c.id_cliente)) : clientes;
 
-	async function cargar() {
+	async function cargar(force = false) {
 		if (!vendedor) return;
 		cargando = true;
 		error = null;
@@ -36,7 +36,7 @@
 		// Solo se necesitan clientes ACTIVOS (<180d): ventana corta evita el
 		// statement timeout con vendedores masivos (ej. 01186 zona centro)
 		const d180 = new Date(Date.now() - 180 * 86400000).toISOString().slice(0, 10);
-		const dirRes = await cargarClientesVendedor(vendedor.id, d180, new Date().toISOString().slice(0, 10));
+		const dirRes = await cargarClientesVendedor(vendedor.id, d180, new Date().toISOString().slice(0, 10), { force });
 		if (dirRes.error) {
 			error = dirRes.error;
 			clientes = [];
@@ -47,7 +47,7 @@
 		if (!nomVendedor && dirRes.data?.[0]?.nom_vendedor) nomVendedor = dirRes.data[0].nom_vendedor;
 		const ids = [...new Set((dirRes.data || []).map((x) => x.id_cliente))];
 		// El directorio ya es ventana 180d = clientes activos
-		const res = await cargarRadar(ids, ids);
+		const res = await cargarRadar(ids, ids, { force });
 		if (res.error) {
 			error = res.error;
 			clientes = [];
@@ -57,7 +57,7 @@
 			calcularTotal();
 		}
 		cargando = false;
-		await cargarStock();
+		await cargarStock(force);
 	}
 
 	$: if ($rutaDia) calcularTotal();
@@ -113,12 +113,11 @@
 	<title>Radar - Ventas Cockpit</title>
 </svelte:head>
 
-<div class="min-h-screen px-4 py-6 max-w-3xl mx-auto" use:pullToRefresh={{onRefresh: cargar}}>
+<div class="min-h-screen px-4 py-6 max-w-3xl mx-auto" use:pullToRefresh={{onRefresh: () => cargar(true)}}>
 	<PageHeader
 		title="Radar de recompra"
-		showBack
-		backHref="/dashboard"
-		backLabel="Volver"
+		showLogo
+		showSearch
 		showProfile
 		profileName={vendedor?.nombre || nomVendedor || ''}
 		profileId={vendedor?.id || ''}
@@ -158,7 +157,7 @@
 		<div class="glass-card p-8 text-center">
 			<p class="text-danger-600 dark:text-danger-400 font-semibold mb-2">No se pudo cargar el radar</p>
 			<p class="text-xs text-g360-muted dark:text-g360-mutedDark mb-4">{error.message || error}</p>
-			<button class="btn-primary" on:click={cargar}>Reintentar</button>
+			<button class="btn-primary" on:click={() => cargar(true)}>Reintentar</button>
 		</div>
 	{:else if clientesVistos.length === 0}
 		<div class="glass-card p-8 text-center text-g360-muted dark:text-g360-mutedDark">
@@ -212,23 +211,3 @@
 		</ul>
 	{/if}
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

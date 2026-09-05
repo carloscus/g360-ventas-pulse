@@ -9,7 +9,8 @@
 	import { vendedorActivo, restaurarSesion } from '$lib/stores/vendedor.js';
 	import { cargarFicha } from './aggregation.js';
 	import { fmtSoles, fmtNum, fmtFecha, fechaISO } from '$lib/utils/format.js';
-	import { generarFichaXlsx, descargarFichaXlsx } from '$lib/export/fichaXlsx.js';
+	import { generarFichaXlsx, descargarFichaXlsx, paretoSkus } from '$lib/export/fichaXlsx.js';
+	import { cargarClientesVendedor } from '$lib/api/clientes.js';
 	import { success, error as toastError } from '$lib/stores/toasts.js';
 	import { getStockMapa, disponibleSku, clasificarStock } from '$lib/api/stock.js';
 	import { cargarResumenComercial, cargarCrossSell, evolucionMensual } from '$lib/api/fichaComercial.js';
@@ -23,10 +24,12 @@
 	let hasta = '';
 	let cargando = true;
 	let error = null;
+	let bloqueado = false;
 	let offline = false;
 	let filas = [];
 	let rows = [];
 	let exportando = false;
+	let exportMsg = '';
 	let stockMapa = null;
 	let resumen = null;
 	let crossSell = [];
@@ -65,6 +68,22 @@
 		if (!clienteId) return;
 		cargando = true;
 		error = null;
+		bloqueado = false;
+		// Guardia de cartera: el cliente debe pertenecer al vendedor activo
+		// (ventana 365d = periodo de la ficha; fallback interno a 180d si
+		// timeout con vendedores masivos). Freno de cliente, no seguridad:
+		// la garantia real es RLS (fase 4).
+		if (vendedor?.id) {
+			const d365 = new Date(Date.now() - 365 * 86400000).toISOString().slice(0, 10);
+			const hoy = new Date().toISOString().slice(0, 10);
+			const dir = await cargarClientesVendedor(vendedor.id, d365, hoy);
+			const ids = new Set((dir.data || []).map((r) => String(r.id_cliente)));
+			if (!ids.has(String(clienteId))) {
+				bloqueado = true;
+				cargando = false;
+				return;
+			}
+		}
 		const res = await cargarFicha(clienteId, desde, hasta);
 		error = res.error;
 		offline = res.source !== 'network';
@@ -193,14 +212,38 @@
 		}
 		exportando = true;
 		try {
+			// 1) Precios: asegurar analisis anual + anomalias (cacheado)
+			exportMsg = 'Precios...';
+			if (analisis.length === 0 && !preciosError) await cargarPrecios();
+
+			// 2) Pareto + comparativas por SKU (tandas de 5 queries paralelas)
+			const pareto = paretoSkus(filas);
+			const comparativas = new Map();
+			if (vendedor?.id && pareto.length > 0) {
+				for (let i = 0; i < pareto.length; i += 5) {
+					const lote = pareto.slice(i, i + 5);
+					exportMsg = `Comparando ${Math.min(i + lote.length, pareto.length)}/${pareto.length}`;
+					const rs = await Promise.all(lote.map((p) => compararClientesPorSku(vendedor.id, p.fila.sku)));
+					lote.forEach((p, j) => comparativas.set(p.fila.sku, rs[j].data || []));
+				}
+			}
+
+			// 3) Generar con fórmulas vivas y descargar
+			exportMsg = 'Generando...';
 			const blob = await generarFichaXlsx({
 				clienteId,
-				clienteNombre: filas[0]?.nom_articulo ? rows[0]?.nom_cliente || clienteId : clienteId,
+				clienteNombre: rows[0]?.nom_cliente || clienteId,
 				vendedor,
 				desde,
 				hasta,
 				filas,
-				rows
+				rows,
+				modas,
+				analisis,
+				anomalias,
+				resumen,
+				pareto,
+				comparativas
 			});
 			descargarFichaXlsx(blob, clienteId, desde, hasta);
 			success('Export generado');
@@ -209,6 +252,7 @@
 			toastError('No se pudo generar el export');
 		} finally {
 			exportando = false;
+			exportMsg = '';
 		}
 	}
 
@@ -236,6 +280,7 @@
 		showBack
 		backHref="/clientes"
 		backLabel="Volver a Mis Clientes"
+		showSearch
 		showProfile
 		profileName={vendedor?.nombre || ''}
 		profileId={vendedor?.id || ''}
@@ -250,7 +295,7 @@
 			disabled={exportando || filas.length === 0}
 			title="Exportar ficha a Excel"
 		>
-			{exportando ? '...' : 'XLSX'}
+			{exportando ? exportMsg || '...' : 'XLSX'}
 		</button>
 	</PageHeader>
 
@@ -259,7 +304,16 @@
 		<div class="badge badge-warning mb-4">Datos offline (cache)</div>
 	{/if}
 
-	{#if cargando}
+	{#if bloqueado}
+		<div class="glass-card p-8 text-center">
+			<p class="text-lg mb-2">🔒</p>
+			<p class="font-semibold text-g360-text dark:text-g360-textDark mb-1">Cliente fuera de tu cartera</p>
+			<p class="text-xs text-g360-muted dark:text-g360-mutedDark mb-4">
+				Solo puedes consultar clientes atendidos por ti en los ultimos 180 dias.
+			</p>
+			<button class="btn-primary" on:click={() => goto(`${base}/clientes`)}>Ir a Mis Clientes</button>
+		</div>
+	{:else if cargando}
 		<div class="glass-card p-8 text-center text-g360-muted dark:text-g360-mutedDark">
 			Cargando ficha…
 		</div>

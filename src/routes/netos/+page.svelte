@@ -4,10 +4,12 @@
 	import { base } from '$app/paths';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import { vendedorActivo, restaurarSesion } from '$lib/stores/vendedor.js';
-	import { cargarNetos } from '$lib/api/netos.js';
-	import { fmtNum, fechaISO } from '$lib/utils/format.js';
+	import { cargarNetos, huellasIguales, leerHuella, guardarHuella } from '$lib/api/netos.js';
+	import { fmtNum, fmtSoles, fechaISO } from '$lib/utils/format.js';
 	import { displayVendedor } from '$lib/utils/display.js';
 	import { proximoOrden, ordenarPor, indicador } from '$lib/utils/orden.js';
+	import { pullToRefresh } from '$lib/actions/ptr.js';
+	import { success } from '$lib/stores/toasts.js';
 
 	let desde = '';
 	let hasta = '';
@@ -24,6 +26,8 @@
 	let rangoAbierto = false;
 	let incompleto = null;
 	let abiertosLin = new Set();
+	let datosHasta = null;
+	let datosRetrasados = false;
 
 	$: vendedor = $vendedorActivo;
 
@@ -46,8 +50,9 @@
 	}
 
 	function fmt0(n) {
+		// Montos con decimales: el ERP audita al centavo (S/ 4,661.94, no 4,662)
 		if (n === 0) return '-';
-		return (n < 0 ? '-S/ ' : 'S/ ') + fmtNum(Math.round(Math.abs(n)));
+		return (n < 0 ? '-' : '') + fmtSoles(Math.abs(n));
 	}
 
 	function varClass(v) {
@@ -60,11 +65,12 @@
 		return (v >= 0 ? '+' : '') + (v * 100).toFixed(0) + '%';
 	}
 
-	async function cargar() {
+	async function cargar(force = false) {
 		if (!vendedor || !desde || !hasta) return;
 		cargando = true;
 		error = null;
-		const res = await cargarNetos(vendedor.id, desde, hasta);
+		const previa = leerHuella(vendedor.id, desde, hasta);
+		const res = await cargarNetos(vendedor.id, desde, hasta, { force });
 		if (res.error) {
 			error = res.error;
 			clientes = [];
@@ -75,6 +81,23 @@
 			offline = res.source !== 'network';
 			abiertosCli = new Set();
 			abiertosLin = new Set();
+			// Frescura: fecha de corte visible + comparacion con la consulta previa
+			datosHasta = res.huella?.max || null;
+			datosRetrasados = Boolean(
+				datosHasta &&
+				(new Date(`${hasta}T00:00:00`) - new Date(`${datosHasta}T00:00:00`)) / 86400000 > 2
+			);
+			if (previa && !offline && res.huella) {
+				if (huellasIguales(previa, res.huella)) {
+					success('Sin cambios desde la ultima consulta');
+				} else {
+					const dSum = Math.round((res.huella.sum - previa.sum) * 100) / 100;
+					const dN = res.huella.n - previa.n;
+					const firma = `${dN >= 0 ? '+' : ''}${dN} lineas, ${dSum >= 0 ? '+' : ''}${dSum} S/`;
+					success(`Datos actualizados (${firma})`);
+				}
+			}
+			guardarHuella(vendedor.id, desde, hasta, res.huella);
 		}
 		cargando = false;
 	}
@@ -125,12 +148,11 @@
 	<title>Montos netos - Ventas Pulse</title>
 </svelte:head>
 
-<div class="min-h-screen px-4 py-6 max-w-4xl mx-auto">
+<div class="min-h-screen px-4 py-6 max-w-4xl mx-auto" use:pullToRefresh={{onRefresh: () => cargar(true)}}>
 	<PageHeader
 		title="Montos netos"
-		showBack
-		backHref="/dashboard"
-		backLabel="Volver a Hoy"
+		showLogo
+		showSearch
 		showProfile
 		profileName={vendedor?.nombre || ''}
 		profileId={vendedor?.id || ''}
@@ -163,6 +185,12 @@
 	{#if periodos}
 		<p class="text-[10px] text-g360-muted dark:text-g360-mutedDark mb-3">
 			A: {periodos.a.desde} → {periodos.a.hasta} · B: {periodos.b.desde} → {periodos.b.hasta} · C: {periodos.c.desde} → {periodos.c.hasta}
+			{#if datosHasta}
+				· Datos al {datosHasta}
+				{#if datosRetrasados}
+					<span class="badge badge-warning px-1.5 py-0 text-[10px]">réplica con retraso</span>
+				{/if}
+			{/if}
 		</p>
 	{/if}
 
