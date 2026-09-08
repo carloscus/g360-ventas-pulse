@@ -33,11 +33,15 @@
 
 	function rangoPreset(p) {
 		const hoy = new Date();
-		let d;
-		if (p === 'mes') d = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-		else if (p === '3m') { d = new Date(hoy); d.setMonth(hoy.getMonth() - 3); }
-		else if (p === '6m') { d = new Date(hoy); d.setMonth(hoy.getMonth() - 6); }
-		else d = new Date(hoy.getFullYear(), 0, 1);
+		if (p === '3m' || p === '6m') {
+			// Meses cerrados: 3m = 01/06/2026-31/08/2026 si hoy es septiembre 2026
+			const n = p === '3m' ? 3 : 6;
+			const d = new Date(hoy.getFullYear(), hoy.getMonth() - n, 1);
+			const h = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
+			return [fechaISO(d), fechaISO(h)];
+		}
+		// Este mes: del dia 1 del mes en curso a hoy
+		const d = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
 		return [fechaISO(d), fechaISO(hoy)];
 	}
 
@@ -164,7 +168,6 @@
 		<button class="px-3.5 py-2 rounded-full text-xs font-semibold min-h-[40px] {preset === 'mes' ? 'bg-primary-600 text-white' : 'bg-g360-bg dark:bg-white/10 text-g360-muted dark:text-g360-mutedDark'}" on:click={() => elegirPreset('mes')}>Este mes</button>
 		<button class="px-3.5 py-2 rounded-full text-xs font-semibold min-h-[40px] {preset === '3m' ? 'bg-primary-600 text-white' : 'bg-g360-bg dark:bg-white/10 text-g360-muted dark:text-g360-mutedDark'}" on:click={() => elegirPreset('3m')}>3 meses</button>
 		<button class="px-3.5 py-2 rounded-full text-xs font-semibold min-h-[40px] {preset === '6m' ? 'bg-primary-600 text-white' : 'bg-g360-bg dark:bg-white/10 text-g360-muted dark:text-g360-mutedDark'}" on:click={() => elegirPreset('6m')}>6 meses</button>
-		<button class="px-3.5 py-2 rounded-full text-xs font-semibold min-h-[40px] {preset === 'anio' ? 'bg-primary-600 text-white' : 'bg-g360-bg dark:bg-white/10 text-g360-muted dark:text-g360-mutedDark'}" on:click={() => elegirPreset('anio')}>Año</button>
 		<button class="px-3 py-2 rounded-full text-xs font-semibold min-h-[40px] {preset === 'custom' ? 'bg-primary-600 text-white' : 'bg-g360-bg dark:bg-white/10 text-g360-muted dark:text-g360-mutedDark'}" on:click={() => (rangoAbierto = !rangoAbierto)} title="Elegir fechas exactas">Otro</button>
 	</div>
 
