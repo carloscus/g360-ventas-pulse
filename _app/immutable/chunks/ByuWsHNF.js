@@ -1,0 +1,1 @@
+function r(t){const n=String(t??""),e=n.replace(/^0+/,"");return e===""?n:e}function s(t){return r(t)}function i(t){const n=String(t??"");return/^01.{3}$/.test(n)?n.slice(2):r(n)}export{s as a,i as d};
