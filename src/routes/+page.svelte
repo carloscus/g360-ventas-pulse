@@ -53,9 +53,10 @@
 
 	function normalizarCodigo(v) {
 		const t = v.trim().toUpperCase();
-		if (/^\d{1,3}$/.test(t)) return '01' + t.padStart(3, '0');
+		// Codigo de vendedor: formato ERP de 3 digitos (ej: 178). Sin prefijo 01.
+		if (/^\d{3}$/.test(t)) return t;
 		// codigo corto con letra inicial (O01 -> 01O01, M05 -> 01M05)
-		if (/^[A-Z]\d{2}$/.test(t)) return '01' + t;
+		if (/^[A-Z]\d{2}$/.test(t)) return t;
 		return t;
 	}
 
