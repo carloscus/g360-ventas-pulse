@@ -23,11 +23,10 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_STOCK_API_URL: ${{ secrets.VITE_STOCK_API_URL }}
           VITE_STOCK_API_KEY: ${{ secrets.VITE_STOCK_API_KEY }}
-      - name: SPA fallback para GitHub Pages (deep links)
-        run: cp build/index.html build/404.html
+      - name: Add SPA fallback for GitHub Pages
+        run: echo "/*    /index.html   200" > build/_redirects
       - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: build
-          publish_branch: gh-pages
           force_orphan: true
