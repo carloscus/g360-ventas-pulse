@@ -4,6 +4,7 @@ export const MODULES = Object.freeze([
 	defineModule({ id: 'hoy', etiqueta: 'Hoy', ruta: '/dashboard', segmento: 'dashboard' }),
 	defineModule({ id: 'radar', etiqueta: 'Radar', ruta: '/radar', segmento: 'radar' }),
 	defineModule({ id: 'netos', etiqueta: 'Netos', ruta: '/netos', segmento: 'netos' }),
+	defineModule({ id: 'productos', etiqueta: 'Productos', ruta: '/productos', segmento: 'productos' }),
 	defineModule({ id: 'clientes', etiqueta: 'Clientes', ruta: '/clientes', segmento: 'clientes' })
 ]);
 
