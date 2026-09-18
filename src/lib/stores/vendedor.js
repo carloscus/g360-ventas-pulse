@@ -7,6 +7,18 @@ export const vendedorActivo = writable(null);
 
 let initialized = false;
 
+/** Valida que el vendedor existe en la BD; si no, limpia la sesión. */
+async function validarVendedorExistente(id) {
+	if (!id) return false;
+	const { postgrestGet, eq } = await import('$lib/api/postgrest.js');
+	const rows = await postgrestGet('ventas', {
+		filters: [eq('id_vendedor', id)],
+		select: 'id',
+		limit: 1
+	});
+	return Array.isArray(rows) && rows.length > 0;
+}
+
 /** Restaura la sesion previa al arrancar la app. Devuelve el vendedor restaurado o null. */
 export async function restaurarSesion() {
 	if (initialized) return get(vendedorActivo);
@@ -15,6 +27,13 @@ export async function restaurarSesion() {
 		await initDB();
 		const previo = await loadVendedorActivo();
 		if (previo && previo.id) {
+			const valido = await validarVendedorExistente(previo.id);
+			if (!valido) {
+				console.warn('[vendedor] sesion invalida detectada, limpiando:', previo.id);
+				vendedorActivo.set(null);
+				await saveVendedorActivo(null);
+				return null;
+			}
 			vendedorActivo.set(previo);
 			return previo;
 		}
