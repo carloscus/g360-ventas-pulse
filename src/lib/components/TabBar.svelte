@@ -5,7 +5,7 @@
 	export let activo = null;
 </script>
 
-<nav class="tabbar" aria-label="Navegación principal">
+<nav class="tabbar" aria-label="Navegación principal" style="grid-template-columns: repeat({MODULES.length}, minmax(0, 1fr));">
 	{#each MODULES as modulo (modulo.id)}
 		<a
 			class="tabbar-link"
@@ -21,7 +21,6 @@
 <style>
 	.tabbar {
 		display: grid;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
 		gap: 4px;
 		width: 100%;
 		height: var(--g360-nav-height);
@@ -85,4 +84,3 @@
 		}
 	}
 </style>
-

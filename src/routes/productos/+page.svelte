@@ -1,3 +1,7 @@
+<script context="module">
+	import { setClienteContexto } from '$lib/stores/contexto.js';
+</script>
+
 <script>
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -38,17 +42,20 @@
 		skuExpandido = skuExpandido === sku ? null : sku;
 	}
 
-	async function cargar() {
+	async function cargar(force = false) {
 		if (!vendedor) return;
 		cargando = true;
 		error = null;
 		try {
 			const [r1, r2] = await Promise.allSettled([
-				cargarTopSkus(vendedor.id),
-				cargarTendenciaLineas(vendedor.id)
+				cargarTopSkus(vendedor.id, force),
+				cargarTendenciaLineas(vendedor.id, force)
 			]);
-			if (r1.status === 'fulfilled') skus = r1.value.skus || [];
-			else error = r1.reason?.message || 'Error cargando SKUs';
+			if (r1.status === 'fulfilled') {
+				skus = r1.value.skus || [];
+			} else {
+				error = r1.reason?.message || 'Error cargando SKUs';
+			}
 			if (r2.status === 'fulfilled') {
 				lineas = r2.value.lineas || [];
 				offline = r2.value.source !== 'network';
@@ -60,6 +67,7 @@
 	}
 
 	onMount(async () => {
+		setClienteContexto(null);
 		const sesion = $vendedorActivo || (await restaurarSesion());
 		if (!sesion) { goto(base || '/', { replaceState: true }); return; }
 		await cargar();
@@ -98,7 +106,7 @@
 
 <div class="min-h-screen px-4 py-6 max-w-4xl mx-auto" use:pullToRefresh={{onRefresh: () => cargar(true)}}>
 	<PageHeader
-		title="Mis Productos"
+		title="Productos"
 		showLogo
 		showSearch
 		showProfile
@@ -108,7 +116,7 @@
 	>
 	</PageHeader>
 
-	<!-- Tabs -->
+	<!-- Tabs: Líneas / SKUs -->
 	<div class="flex gap-1 mb-4 p-1 bg-g360-surface dark:bg-white/5 rounded-full self-start">
 		<button
 			class="px-4 py-1.5 rounded-full text-xs font-semibold transition-all {pestaña === 'lineas' ? 'bg-primary-600 text-white shadow' : 'text-g360-muted dark:text-g360-mutedDark'}"
@@ -251,10 +259,3 @@
 	{/if}
 	{/if}
 </div>
-
-<style>
-	.btn-primary { @apply bg-primary-600 hover:bg-primary-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-colors; }
-	.glass-card { @apply bg-white/80 dark:bg-g360-surface/80 backdrop-blur rounded-2xl border border-white/20 dark:border-white/10 shadow-sm; }
-	.badge { @apply px-3 py-1.5 rounded-full text-xs font-semibold inline-flex items-center gap-1; }
-	.badge-warning { @apply bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400; }
-</style>
