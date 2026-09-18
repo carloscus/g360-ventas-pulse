@@ -1,7 +1,3 @@
-<script context="module">
-	import { setClienteContexto } from '$lib/stores/contexto.js';
-</script>
-
 <script>
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -11,6 +7,7 @@
 	import { cargarTopSkus, cargarTendenciaLineas } from '$lib/api/productos.js';
 	import { fmtSoles, fmtNum } from '$lib/utils/format.js';
 	import { pullToRefresh } from '$lib/actions/ptr.js';
+	import { setClienteContexto } from '$lib/stores/contexto.js';
 
 	const LINE_COLORS = ['#00d084', '#00796B', '#2563eb', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
