@@ -25,14 +25,20 @@
 	let orden = { clave: 'solesA', dir: -1 };
 	let lineaFiltro = null;
 	let tooltip = null;
+	let svgEl;
+
+	// Placeholder: en producción usaría un cliente real del vendedor
+	function skuFuerza(s) {
+		return '00002035';
+	}
 
 	$: vendedor = $vendedorActivo;
 
 	// Período actual
-	$: const hoy = new Date();
-	$: const mesActual = hoy.getMonth();
-	$: const anioActual = hoy.getFullYear();
-	$: const periodoTexto = `Ene ${anioActual} – ${hoy.toLocaleDateString('es-PE', { month: 'long', year: 'numeric' })}`;
+	const hoy = new Date();
+	const mesActual = hoy.getMonth();
+	const anioActual = hoy.getFullYear();
+	const periodoTexto = `Ene ${anioActual} – ${hoy.toLocaleDateString('es-PE', { month: 'long', year: 'numeric' })}`;
 
 	function fmtVar(v) {
 		if (v == null) return '-';
@@ -356,10 +362,3 @@
 	{/if}
 	{/if}
 </div>
-
-<script context="module">
-	function skuFuerza(s) {
-		// Placeholder: en producción usaría un cliente real del vendedor
-		return '00002035';
-	}
-</script>
