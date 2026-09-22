@@ -138,3 +138,123 @@ export async function cargarTendenciaLineas(idVendedor, force = false) {
 	const lineas = [...porLineaMes.values()].sort((a, b) => a.mes.localeCompare(b.mes));
 	return { error: null, lineas };
 }
+
+// ---------------------------------------------------------------------------
+// PRECIOS POR AÑO
+// ---------------------------------------------------------------------------
+
+const SELECT_PRECIOS = 'id_articulo,nom_articulo,precio_unitario,cantidad,soles,fecha_orig,tipo_operacion';
+
+async function fetchPrecios(idVendedor, desde, hasta, force = false) {
+	const params = {
+		filters: [eq('id_vendedor', idVendedor), gte('fecha_orig', desde), lte('fecha_orig', hasta), eq('tipo_operacion', 'venta')],
+		select: SELECT_PRECIOS,
+		order: 'fecha_orig.asc,id.asc',
+		limit: PAGE_SIZE
+	};
+	let offset = 0;
+	const filas = [];
+	let fuente = 'network';
+	let error = null;
+	while (true) {
+		const res = await cachedGet('precios-anio', { ...params, offset }, () =>
+			postgrestGet('ventas', { ...params, offset })
+		, { force });
+		if (res.error) { error = res.error; break; }
+		fuente = res.source;
+		filas.push(...(res.data || []));
+		if ((res.data || []).length < PAGE_SIZE) break;
+		offset += PAGE_SIZE;
+		if (offset > 20000) break;
+	}
+	return { error, data: filas, source: fuente };
+}
+
+function modaPrecios(precios) {
+	if (!precios || precios.length === 0) return null;
+	const freq = new Map();
+	for (const p of precios) {
+		const k = p.toFixed(2);
+		freq.set(k, (freq.get(k) || 0) + 1);
+	}
+	let modaK = null;
+	let modaN = 0;
+	for (const [k, n] of freq) {
+		if (n > modaN) { modaK = k; modaN = n; }
+	}
+	return modaK === null ? null : Number(modaK);
+}
+
+/**
+ * Precios por año: último precio vendido, moda 2026, 2025, 2024, y variación.
+ * Solo SKUs con al menos una venta en el período.
+ */
+export async function cargarPreciosPorAnio(idVendedor, force = false) {
+	const hoy = new Date();
+	const anioActual = hoy.getFullYear();
+
+	const [r2026, r2025, r2024] = await Promise.allSettled([
+		fetchPrecios(idVendedor, `${anioActual}-01-01`, hoy.toISOString().slice(0, 10), force),
+		fetchPrecios(idVendedor, `${anioActual - 1}-01-01`, `${anioActual - 1}-12-31`, force),
+		fetchPrecios(idVendedor, `${anioActual - 2}-01-01`, `${anioActual - 2}-12-31`, force)
+	]);
+
+	const filas2026 = r2026.status === 'fulfilled' && !r2026.value.error ? r2026.value.data || [] : [];
+	const filas2025 = r2025.status === 'fulfilled' && !r2025.value.error ? r2025.value.data || [] : [];
+	const filas2024 = r2024.status === 'fulfilled' && !r2024.value.error ? r2024.value.data || [] : [];
+
+	const porSku = new Map();
+
+	function agregar(rows, anio) {
+		for (const r of rows) {
+			const sku = String(r.id_articulo);
+			const p = Number(r.precio_unitario);
+			if (!(p > 0)) continue;
+			let f = porSku.get(sku);
+			if (!f) {
+				f = {
+					sku,
+					nom: r.nom_articulo || sku,
+					ultimoPrecio: null,
+					ultimoFecha: null,
+					anios: {}
+				};
+				porSku.set(sku, f);
+			}
+			if (!f.ultimoPrecio || (r.fecha_orig && r.fecha_orig > f.ultimoFecha)) {
+				f.ultimoPrecio = p;
+				f.ultimoFecha = r.fecha_orig;
+			}
+			if (!f.anios[anio]) f.anios[anio] = [];
+			f.anios[anio].push(p);
+		}
+	}
+
+	agregar(filas2026, anioActual);
+	agregar(filas2025, anioActual - 1);
+	agregar(filas2024, anioActual - 2);
+
+	const skus = [...porSku.values()]
+		.map(f => {
+			const m2026 = modaPrecios(f.anios[anioActual]);
+			const m2025 = modaPrecios(f.anios[anioActual - 1]);
+			const m2024 = modaPrecios(f.anios[anioActual - 2]);
+			let variacion = null;
+			if (m2025 && m2026) variacion = (m2026 - m2025) / Math.abs(m2025);
+			return {
+				...f,
+				moda2026: m2026,
+				moda2025: m2025,
+				moda2024: m2024,
+				variacion
+			};
+		})
+		.filter(f => f.moda2026 || f.moda2025 || f.moda2024 || f.ultimoPrecio)
+		.sort((a, b) => (b.moda2026 || 0) - (a.moda2026 || 0));
+
+	return {
+		error: null,
+		skus,
+		source: r2026.status === 'fulfilled' ? r2026.value.source : 'network'
+	};
+}

@@ -4,7 +4,7 @@
 	import { base } from '$app/paths';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import { vendedorActivo, restaurarSesion } from '$lib/stores/vendedor.js';
-	import { cargarTopSkus, cargarTendenciaLineas } from '$lib/api/productos.js';
+	import { cargarTopSkus, cargarTendenciaLineas, cargarPreciosPorAnio } from '$lib/api/productos.js';
 	import { fmtSoles, fmtNum } from '$lib/utils/format.js';
 	import { pullToRefresh } from '$lib/actions/ptr.js';
 	import { setClienteContexto } from '$lib/stores/contexto.js';
@@ -19,6 +19,7 @@
 	let error = null;
 	let skus = [];
 	let lineas = [];
+	let precios = [];
 	let pestaña = 'lineas';
 	let skuExpandido = null;
 	let offline = false;
@@ -87,9 +88,10 @@
 		cargando = true;
 		error = null;
 		try {
-			const [r1, r2] = await Promise.allSettled([
+			const [r1, r2, r3] = await Promise.allSettled([
 				cargarTopSkus(vendedor.id, force),
-				cargarTendenciaLineas(vendedor.id, force)
+				cargarTendenciaLineas(vendedor.id, force),
+				cargarPreciosPorAnio(vendedor.id, force)
 			]);
 			if (r1.status === 'fulfilled') {
 				skus = r1.value.skus || [];
@@ -98,7 +100,10 @@
 			}
 			if (r2.status === 'fulfilled') {
 				lineas = r2.value.lineas || [];
-				offline = r2.value.source !== 'network';
+			}
+			if (r3.status === 'fulfilled') {
+				precios = r3.value.skus || [];
+				offline = r3.value.source !== 'network';
 			}
 		} catch (e) {
 			error = String(e);
@@ -170,6 +175,12 @@
 			on:click={() => pestaña = 'lineas'}
 		>
 			Líneas
+		</button>
+	<button
+			class="px-4 py-1.5 rounded-full text-xs font-semibold transition-all {pestaña === 'precios' ? 'bg-primary-600 text-white shadow' : 'text-g360-muted dark:text-g360-mutedDark'}"
+			on:click={() => pestaña = 'precios'}
+		>
+			Precios
 		</button>
 		<button
 			class="px-4 py-1.5 rounded-full text-xs font-semibold transition-all {pestaña === 'skus' ? 'bg-primary-600 text-white shadow' : 'text-g360-muted dark:text-g360-mutedDark'}"
@@ -273,6 +284,75 @@
 						</button>
 					{/each}
 				</div>
+			{/if}
+		</div>
+
+	{:else if pestaña === 'precios'}
+		<!-- PRECIOS POR AÑO -->
+		<div class="glass-card p-4">
+			<div class="flex items-center justify-between mb-3">
+				<h2 class="text-sm font-bold text-g360-text dark:text-g360-textDark">
+					Precios por año
+				</h2>
+				<span class="text-[10px] text-g360-muted dark:text-g360-mutedDark">Moda = precio más frecuente</span>
+			</div>
+			{#if precios.length === 0}
+				<div class="text-center py-8">
+					<p class="text-xs text-g360-muted dark:text-g360-mutedDark mb-2">Sin datos de precios</p>
+					<p class="text-[10px] text-g360-muted dark:text-g360-mutedDark opacity-60">No hay ventas con precio unitario registradas</p>
+				</div>
+			{:else}
+				<div class="overflow-x-auto">
+					<table class="w-full text-xs">
+						<thead>
+							<tr class="text-left text-[10px] uppercase tracking-wide text-g360-muted dark:text-g360-mutedDark border-b border-g360-surface/60 dark:border-white/10">
+								<th class="py-2 px-2">SKU</th>
+								<th class="py-2 px-2">Artículo</th>
+								<th class="py-2 px-2 text-right">Último</th>
+								<th class="py-2 px-2 text-right">{anioActual}</th>
+								<th class="py-2 px-2 text-right">{anioActual - 1}</th>
+								<th class="py-2 px-2 text-right">{anioActual - 2}</th>
+								<th class="py-2 px-2 text-right">Δ</th>
+							</tr>
+						</thead>
+						<tbody>
+							{#each precios as p (p.sku)}
+								<tr class="border-b border-g360-surface/30 dark:border-white/5 hover:bg-primary-50/20 dark:hover:bg-white/5 transition-colors">
+									<td class="py-2 px-2">
+										<span class="font-mono font-semibold text-g360-text dark:text-g360-textDark">{p.sku}</span>
+									</td>
+									<td class="py-2 px-2 text-g360-muted dark:text-g360-mutedDark max-w-[200px] truncate" title={p.nom}>
+										{p.nom}
+									</td>
+									<td class="py-2 px-2 text-right font-semibold">
+										{p.ultimoPrecio ? fmtSoles(p.ultimoPrecio) : '—'}
+									</td>
+									<td class="py-2 px-2 text-right font-bold text-primary-600 dark:text-primary-400">
+										{p.moda2026 ? fmtSoles(p.moda2026) : '—'}
+									</td>
+									<td class="py-2 px-2 text-right text-g360-text dark:text-g360-textDark">
+										{p.moda2025 ? fmtSoles(p.moda2025) : '—'}
+									</td>
+									<td class="py-2 px-2 text-right text-g360-muted dark:text-g360-mutedDark">
+										{p.moda2024 ? fmtSoles(p.moda2024) : '—'}
+									</td>
+									<td class="py-2 px-2 text-right">
+										{#if p.variacion != null}
+											<span class="{p.variacion > 0 ? 'text-success-600 dark:text-success-400' : p.variacion < 0 ? 'text-danger-600 dark:text-danger-400' : 'text-g360-muted dark:text-g360-mutedDark'}">
+												{p.variacion > 0 ? '↑' : p.variacion < 0 ? '↓' : '→'}
+											</span>
+										{:else}
+											<span class="text-g360-muted dark:text-g360-mutedDark">—</span>
+										{/if}
+									</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+				<p class="text-[10px] text-g360-muted dark:text-g360-mutedDark mt-3 text-center">
+					{precios.length} SKUs · Δ = variación {anioActual - 1} → {anioActual}
+				</p>
 			{/if}
 		</div>
 
